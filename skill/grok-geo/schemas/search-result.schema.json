@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geo-audit.local/schemas/search-result.schema.json",
+  "title": "GEO Search Result",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "run_id",
+    "question_id",
+    "query_text",
+    "status",
+    "executed_at"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0" },
+    "run_id": { "type": "string" },
+    "question_id": { "type": "string" },
+    "query_text": { "type": "string" },
+    "search_environment": { "type": "string" },
+    "executed_at": { "type": "string" },
+    "status": {
+      "type": "string",
+      "enum": ["success", "failed"]
+    },
+    "search_call_id": { "type": ["string", "null"] },
+    "answer_text": { "type": ["string", "null"] },
+    "citations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "url": { "type": "string" },
+          "start_index": { "type": ["integer", "null"] },
+          "end_index": { "type": ["integer", "null"] }
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": { "type": "string" },
+          "type": { "type": "string" }
+        }
+      }
+    },
+    "error": { "type": ["string", "object", "null"] },
+    "citation_status": {
+      "type": "string",
+      "enum": ["present", "none"]
+    }
+  }
+}

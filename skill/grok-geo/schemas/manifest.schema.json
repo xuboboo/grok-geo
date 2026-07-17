@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geo-audit.local/schemas/manifest.schema.json",
+  "title": "GEO Run Manifest",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "skill_name",
+    "skill_version",
+    "run_id",
+    "mode",
+    "status",
+    "started_at"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "skill_name": { "type": "string" },
+    "skill_version": { "type": "string" },
+    "run_id": { "type": "string" },
+    "mode": { "type": "string" },
+    "status": { "type": "string" },
+    "started_at": { "type": "string" },
+    "updated_at": { "type": "string" },
+    "completed_at": { "type": ["string", "null"] },
+    "input_sha256": { "type": "string" },
+    "question_count": { "type": "integer" },
+    "search_result_count": { "type": "integer" },
+    "successful_result_count": { "type": "integer" },
+    "failed_result_count": { "type": "integer" },
+    "current_batch": { "type": "integer" },
+    "warnings": { "type": "array" },
+    "errors": { "type": "array" },
+    "outputs": { "type": "object" }
+  }
+}

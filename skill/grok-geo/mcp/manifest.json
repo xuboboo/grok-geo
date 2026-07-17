@@ -1,0 +1,153 @@
+{
+  "name": "grok-geo",
+  "version": "5.0.0",
+  "description": "GEO Brand Audit MCP Server — AI search visibility diagnostics",
+  "tools": [
+    {
+      "name": "geo_audit_run",
+      "description": "Run a full GEO brand audit. Produces report.md, report.json, metrics, opportunities, and evidence.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["brand_name", "website", "industry", "target_customer"],
+        "properties": {
+          "brand_name": {
+            "type": "string",
+            "description": "Exact brand or company name to audit"
+          },
+          "website": {
+            "type": "string",
+            "description": "Official website URL"
+          },
+          "industry": {
+            "type": "string",
+            "description": "Industry or product category (e.g., SaaS, e-commerce, local service)"
+          },
+          "target_customer": {
+            "type": "string",
+            "description": "Target customer (e.g., SMB teams, enterprise, consumers)"
+          },
+          "target_region": {
+            "type": "string",
+            "description": "Geographic region (default: global)"
+          },
+          "competitors": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Known competitors to compare against"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["quick", "standard"],
+            "default": "standard",
+            "description": "quick=10 questions/60s snapshot, standard=30 questions/full diagnostic"
+          }
+        }
+      }
+    },
+    {
+      "name": "geo_audit_status",
+      "description": "Check the status of a running or completed GEO audit.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["run_id"],
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "description": "Run ID returned by geo_audit_run"
+          }
+        }
+      }
+    },
+    {
+      "name": "geo_audit_report",
+      "description": "Retrieve the report from a completed GEO audit.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["run_id"],
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "description": "Run ID of a completed audit"
+          },
+          "format": {
+            "type": "string",
+            "enum": ["markdown", "json"],
+            "default": "markdown",
+            "description": "Report format"
+          }
+        }
+      }
+    },
+    {
+      "name": "geo_audit_metrics",
+      "description": "Get computed metrics from a completed GEO audit. Returns T1/T2/T3 tiered metrics.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["run_id"],
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "description": "Run ID of a completed audit"
+          },
+          "tier": {
+            "type": "string",
+            "enum": ["all", "T1", "T2", "T3"],
+            "default": "all",
+            "description": "Filter metrics by tier"
+          }
+        }
+      }
+    },
+    {
+      "name": "geo_schedule_add",
+      "description": "Add a scheduled recurring GEO audit.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["name", "brand_config"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Schedule name (unique identifier)"
+          },
+          "brand_config": {
+            "type": "object",
+            "description": "Brand configuration (brand_name, website, industry, target_customer)",
+            "required": ["brand_name", "website"]
+          },
+          "cron": {
+            "type": "string",
+            "default": "0 2 * * 1",
+            "description": "Cron expression (default: weekly Monday 02:00)"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["quick", "standard"],
+            "default": "standard"
+          }
+        }
+      }
+    },
+    {
+      "name": "geo_schedule_list",
+      "description": "List all configured GEO audit schedules.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "geo_schedule_run",
+      "description": "Manually trigger a scheduled GEO audit.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Schedule name to run"
+          }
+        }
+      }
+    }
+  ]
+}

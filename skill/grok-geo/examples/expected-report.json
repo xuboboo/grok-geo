@@ -1,0 +1,13 @@
+{
+  "note": "Illustrative expected metrics shape for offline demo; exact floats come from calculate_metrics.py",
+  "mention_rate": {"numerator": 4, "denominator": 10},
+  "recommendation_rate": {"numerator": 3, "denominator": 5},
+  "required_outputs": [
+    "report.md",
+    "report.json",
+    "questions.csv",
+    "evidence.csv",
+    "opportunities.csv",
+    "manifest.json"
+  ]
+}

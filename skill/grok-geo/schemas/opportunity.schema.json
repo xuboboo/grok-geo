@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geo-audit.local/schemas/opportunity.schema.json",
+  "title": "GEO Opportunity",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["id", "title", "opportunity_type", "scores"],
+  "properties": {
+    "id": { "type": "string" },
+    "title": { "type": "string" },
+    "target_question_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "opportunity_type": { "type": "string" },
+    "observed_gap": { "type": "string" },
+    "competitor_evidence": { "type": "string" },
+    "recommended_asset": { "type": "string" },
+    "recommended_channels": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "required_evidence": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "validation_method": { "type": "string" },
+    "scores": {
+      "type": "object",
+      "required": ["total"],
+      "properties": {
+        "business_value": { "type": "number" },
+        "competitive_gap": { "type": "number" },
+        "brand_absence": { "type": "number" },
+        "executability": { "type": "number" },
+        "evidence_readiness": { "type": "number" },
+        "risk_penalty": { "type": "number" },
+        "total": { "type": "number" }
+      }
+    }
+  }
+}

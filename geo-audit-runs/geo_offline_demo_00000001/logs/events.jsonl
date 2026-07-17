@@ -1,0 +1,14 @@
+{"ts":"2026-07-17T17:40:21Z","event":"run_initialized","detail":{"run_id":"geo_offline_demo_00000001","mode":"offline_import","question_count":10}}
+{"ts":"2026-07-17T17:40:22Z","event":"search_result_appended","detail":{"question_id":"q-001","status":"success"}}
+{"ts":"2026-07-17T17:40:22Z","event":"search_result_appended","detail":{"question_id":"q-002","status":"success"}}
+{"ts":"2026-07-17T17:40:22Z","event":"search_result_appended","detail":{"question_id":"q-003","status":"success"}}
+{"ts":"2026-07-17T17:40:23Z","event":"search_result_appended","detail":{"question_id":"q-004","status":"success"}}
+{"ts":"2026-07-17T17:40:23Z","event":"search_result_appended","detail":{"question_id":"q-005","status":"success"}}
+{"ts":"2026-07-17T17:40:23Z","event":"search_result_appended","detail":{"question_id":"q-006","status":"success"}}
+{"ts":"2026-07-17T17:40:23Z","event":"search_result_appended","detail":{"question_id":"q-007","status":"success"}}
+{"ts":"2026-07-17T17:40:24Z","event":"search_result_appended","detail":{"question_id":"q-008","status":"success"}}
+{"ts":"2026-07-17T17:40:24Z","event":"search_result_appended","detail":{"question_id":"q-009","status":"success"}}
+{"ts":"2026-07-17T17:40:24Z","event":"search_result_appended","detail":{"question_id":"q-010","status":"success"}}
+{"ts":"2026-07-17T17:40:25Z","event":"report_rendered","detail":{"report_json":"C:\\Users\\豆豆\\Desktop\\code\\skill\\geo-audit-runs\\geo_offline_demo_00000001\\output\\report.json"}}
+{"ts":"2026-07-17T17:40:25Z","event":"report_validated","detail":{"ok":true,"errors":[],"warnings":[],"success_rate":1.0,"suggested_status":"COMPLETED"}}
+{"ts":"2026-07-17T17:40:25Z","event":"outputs_packaged","detail":{"zip":"C:\\Users\\豆豆\\Desktop\\code\\skill\\geo-audit-runs\\geo_offline_demo_00000001\\output\\geo_offline_demo_00000001-outputs.zip","sha256":"39f0ffc8a34e35765e4ca0622a30d256f8b05a79abba2f6bd06f91c8fc8b531c","missing":[]}}

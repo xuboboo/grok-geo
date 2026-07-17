@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "mode": "offline_import",
+  "brand_name": "示例科技",
+  "brand_aliases": ["示例项目", "Example Project"],
+  "website": "https://example.com",
+  "industry": "项目管理软件",
+  "products": [
+    {
+      "name": "示例项目专业版",
+      "aliases": ["示例专业版"],
+      "summary": "面向研发团队的项目协作平台"
+    }
+  ],
+  "target_customer": "20至200人的研发和项目团队",
+  "target_region": ["中国大陆"],
+  "language": "zh-CN",
+  "competitors": [
+    {"name": "竞争品牌A", "website": "https://competitor-a.example"},
+    {"name": "竞争品牌B", "website": "https://competitor-b.example"}
+  ],
+  "business_goals": [
+    "increase_mentions",
+    "increase_recommendations",
+    "increase_owned_citations"
+  ],
+  "known_facts": [
+    {
+      "statement": "支持私有化部署",
+      "source_url": "https://example.com/private-deployment",
+      "valid_from": "2026-01-01",
+      "valid_to": null
+    }
+  ],
+  "forbidden_claims": ["行业第一", "百分之百提升效率"],
+  "options": {
+    "question_count": 10,
+    "query_variants": 1,
+    "max_opportunities": 10,
+    "max_content_briefs": 5
+  }
+}

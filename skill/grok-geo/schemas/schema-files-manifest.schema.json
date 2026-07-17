@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema-files-manifest.schema.json",
+  "title": "Schema Files Manifest",
+  "description": "AI 可读文件生成清单",
+  "type": "object",
+  "required": ["generated_at", "files", "output_dir", "validation_passed"],
+  "properties": {
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "output_dir": { "type": "string" },
+    "validation_errors": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "validation_passed": { "type": "boolean" }
+  },
+  "additionalProperties": false
+}

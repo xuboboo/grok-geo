@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "engine-response.schema.json",
+  "title": "Engine Response",
+  "description": "单个 AI 引擎查询响应",
+  "type": "object",
+  "required": ["engine", "model", "question_id", "question_text", "answer_text", "citations", "sources", "response_metadata", "query_timestamp", "status"],
+  "properties": {
+    "engine": {
+      "type": "string",
+      "enum": ["chatgpt", "perplexity", "claude", "gemini", "grok", "deepseek"]
+    },
+    "model": { "type": "string" },
+    "question_id": { "type": "string" },
+    "question_text": { "type": "string" },
+    "answer_text": { "type": "string" },
+    "citations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["url"],
+        "properties": {
+          "title": { "type": "string" },
+          "url": { "type": "string", "format": "uri" },
+          "domain": { "type": "string" },
+          "snippet": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "response_metadata": {
+      "type": "object",
+      "properties": {
+        "tokens_used": { "type": "integer", "minimum": 0 },
+        "latency_ms": { "type": "integer", "minimum": 0 },
+        "has_inline_citations": { "type": "boolean" },
+        "response_format": { "type": "string", "enum": ["narrative", "list", "table", "unknown"] },
+        "list_detected": { "type": "boolean" },
+        "table_detected": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "query_timestamp": { "type": "string", "format": "date-time" },
+    "status": { "type": "string", "enum": ["success", "error", "timeout"] },
+    "error": { "type": ["string", "null"] },
+    "fallback": { "type": ["string", "null"], "enum": ["web_search", "offline", null] }
+  },
+  "additionalProperties": false
+}

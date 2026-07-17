@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geo-audit.local/schemas/entity-analysis.schema.json",
+  "title": "GEO Entity Analysis Row",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["question_id", "entities"],
+  "properties": {
+    "question_id": { "type": "string" },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["entity_id", "canonical_name", "entity_type", "mentioned"],
+        "properties": {
+          "entity_id": { "type": "string" },
+          "canonical_name": { "type": "string" },
+          "entity_type": {
+            "type": "string",
+            "enum": ["target_brand", "competitor", "other"]
+          },
+          "mentioned": { "type": "boolean" },
+          "mention_type": { "type": ["string", "null"] },
+          "sentiment": { "type": ["string", "null"] },
+          "recommendation_rank": { "type": ["integer", "null"] },
+          "recommendation_strength": { "type": ["string", "null"] },
+          "evidence_text": { "type": ["string", "null"] },
+          "confidence": { "type": ["number", "null"] },
+          "recommendation_type": {
+            "type": ["string", "null"],
+            "enum": [null, "top_pick", "strong_alternative", "conditional", "mentioned_only", "discouraged", "not_mentioned"],
+            "description": "OneGlanse-style recommendation classification — top_pick=首选, strong_alternative=前三, conditional=有条件推荐, mentioned_only=仅提及, discouraged=明确不推荐"
+          },
+          "sentiment_score": {
+            "type": ["number", "null"],
+            "minimum": 0,
+            "maximum": 100,
+            "description": "0=actively warned against, 50=neutral, 100=explicit superlatives. Null if brand not mentioned."
+          },
+          "competitor_co_mentions": {
+            "type": "array",
+            "description": "Competitor entity_ids that co-appear in the same answer alongside this entity",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

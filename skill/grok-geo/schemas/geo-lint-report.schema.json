@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "geo-lint-report.schema.json",
+  "title": "GEO Lint Report",
+  "description": "GEO 发布前合规检查报告",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool",
+    "tool_version",
+    "linted_at",
+    "score",
+    "grade",
+    "dimension_scores",
+    "issues",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "tool": {
+      "type": "string",
+      "const": "geo-lint"
+    },
+    "tool_version": {
+      "type": "string"
+    },
+    "linted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "target_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "grade": {
+      "type": "string",
+      "enum": ["A", "B", "C", "D", "F"]
+    },
+    "dimension_scores": {
+      "type": "object",
+      "properties": {
+        "schema": { "$ref": "#/$defs/dimension_score" },
+        "crawler": { "$ref": "#/$defs/dimension_score" },
+        "citability": { "$ref": "#/$defs/dimension_score" },
+        "entity": { "$ref": "#/$defs/dimension_score" },
+        "multimodal": { "$ref": "#/$defs/dimension_score" },
+        "i18n": { "$ref": "#/$defs/dimension_score" }
+      },
+      "required": ["schema", "crawler", "citability", "entity", "multimodal", "i18n"],
+      "additionalProperties": false
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/lint_issue"
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total_rules_checked", "errors", "warnings", "info", "pass_rate"],
+      "properties": {
+        "total_rules_checked": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "integer", "minimum": 0 },
+        "warnings": { "type": "integer", "minimum": 0 },
+        "info": { "type": "integer", "minimum": 0 },
+        "pass_rate": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "dimension_score": {
+      "type": "object",
+      "required": ["score", "total_rules", "pass", "fail", "warn", "info"],
+      "properties": {
+        "score": { "type": "number", "minimum": 0, "maximum": 100 },
+        "total_rules": { "type": "integer", "minimum": 0 },
+        "pass": { "type": "integer", "minimum": 0 },
+        "fail": { "type": "integer", "minimum": 0 },
+        "warn": { "type": "integer", "minimum": 0 },
+        "info": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "lint_issue": {
+      "type": "object",
+      "required": ["rule_id", "dimension", "severity", "message", "evidence"],
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "pattern": "^(SCHEMA|CRAWL|CITE|ENTITY|MULTI|I18N)-\\d{3}$"
+        },
+        "dimension": {
+          "type": "string",
+          "enum": ["schema", "crawler", "citability", "entity", "multimodal", "i18n"]
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["ERROR", "WARNING", "INFO"]
+        },
+        "message": { "type": "string" },
+        "evidence": { "type": "string" },
+        "fix_suggestion": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

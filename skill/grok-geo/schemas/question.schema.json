@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geo-audit.local/schemas/question.schema.json",
+  "title": "GEO Question",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "text",
+    "intent",
+    "business_value",
+    "contains_target_brand",
+    "status"
+  ],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "text": { "type": "string", "minLength": 1 },
+    "normalized_text": { "type": "string" },
+    "intent": {
+      "type": "string",
+      "enum": [
+        "category_awareness",
+        "use_case",
+        "recommendation",
+        "comparison",
+        "purchase",
+        "trust_risk",
+        "brand_fact",
+        "support"
+      ]
+    },
+    "funnel_stage": {
+      "type": "string",
+      "enum": ["awareness", "consideration", "decision", "retention"]
+    },
+    "persona": { "type": "string" },
+    "business_value": { "type": "number", "minimum": 0, "maximum": 100 },
+    "contains_target_brand": { "type": "boolean" },
+    "variant_group": { "type": "string" },
+    "source": { "type": "string" },
+    "status": {
+      "type": "string",
+      "enum": ["ready", "searched", "failed", "skipped"]
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geo-audit.local/schemas/claim.schema.json",
+  "title": "GEO Claim",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["question_id", "claim_text", "verification_status"],
+  "properties": {
+    "question_id": { "type": "string" },
+    "brand_id": { "type": "string" },
+    "claim_text": { "type": "string" },
+    "subject": { "type": "string" },
+    "predicate": { "type": "string" },
+    "value": {},
+    "claim_type": { "type": "string" },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "correct",
+        "partially_correct",
+        "incorrect",
+        "outdated",
+        "unsupported",
+        "entity_confusion",
+        "unverifiable"
+      ]
+    },
+    "reference_fact_id": { "type": ["string", "null"] },
+    "reference_url": { "type": ["string", "null"] },
+    "risk_level": {
+      "type": "string",
+      "enum": ["high", "medium", "low"]
+    },
+    "confidence": { "type": ["number", "null"] }
+  }
+}

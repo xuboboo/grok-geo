@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cross-engine-metrics.schema.json",
+  "title": "Cross-Engine Metrics",
+  "description": "跨引擎聚合指标",
+  "type": "object",
+  "required": ["engine_stats", "total_queries", "total_successful", "engines_used"],
+  "properties": {
+    "engine_stats": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["total_queries", "success_count", "success_rate", "citation_count", "citation_rate", "unique_domains_cited"],
+        "properties": {
+          "total_queries": { "type": "integer", "minimum": 0 },
+          "success_count": { "type": "integer", "minimum": 0 },
+          "success_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+          "citation_count": { "type": "integer", "minimum": 0 },
+          "citation_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+          "unique_domains_cited": { "type": "integer", "minimum": 0 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "cross_engine_citation_consistency": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "total_queries": { "type": "integer", "minimum": 0 },
+    "total_successful": { "type": "integer", "minimum": 0 },
+    "engines_used": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}

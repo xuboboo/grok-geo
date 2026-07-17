@@ -1,0 +1,54 @@
+{
+  "content_briefs": [
+    {
+      "opportunity_id": "opp-001",
+      "channel": "website",
+      "content_type": "buying_guide",
+      "working_title": "五十人研发团队如何选择项目管理软件",
+      "target_audience": "研发负责人",
+      "target_questions": ["q-001", "q-002"],
+      "business_goal": "进入推荐型AI搜索答案",
+      "current_gap": "高价值推荐问题中品牌出现不足",
+      "recommended_thesis": "以团队规模、私有化与协作深度作为选型标准",
+      "outline": [
+        {
+          "heading": "选择标准",
+          "required_points": ["团队规模", "部署方式", "集成能力"]
+        },
+        {
+          "heading": "候选方案比较",
+          "required_points": ["功能矩阵", "总拥有成本"]
+        }
+      ],
+      "verified_facts": ["支持私有化部署"],
+      "evidence_to_collect": ["客户案例", "性能数据"],
+      "competitor_points_to_address": ["竞争品牌A上手成本", "竞争品牌B文档协作"],
+      "forbidden_claims": ["行业第一", "百分之百提升效率"],
+      "internal_links": ["https://example.com/product", "https://example.com/private-deployment"],
+      "validation_queries": ["适合五十人研发团队的项目管理软件有哪些？"],
+      "human_review_required": true
+    },
+    {
+      "opportunity_id": "opp-002",
+      "channel": "website",
+      "content_type": "capability_page",
+      "working_title": "示例科技私有化部署能力说明",
+      "target_audience": "IT负责人",
+      "target_questions": ["q-005", "q-009"],
+      "business_goal": "纠正错误事实并提升权威引用",
+      "current_gap": "第三方转述出现错误能力描述",
+      "recommended_thesis": "以官方架构与合规材料作为唯一事实来源",
+      "outline": [
+        {"heading": "部署架构", "required_points": ["网络拓扑", "组件清单"]},
+        {"heading": "安全与合规", "required_points": ["访问控制", "审计"]}
+      ],
+      "verified_facts": ["支持私有化部署"],
+      "evidence_to_collect": ["安全白皮书"],
+      "competitor_points_to_address": [],
+      "forbidden_claims": ["行业第一"],
+      "internal_links": ["https://example.com/private-deployment"],
+      "validation_queries": ["示例科技支持私有化部署吗？"],
+      "human_review_required": true
+    }
+  ]
+}

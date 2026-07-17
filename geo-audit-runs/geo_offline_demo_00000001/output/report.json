@@ -1,0 +1,864 @@
+{
+  "metadata": {
+    "skill_name": "grok-geo",
+    "skill_version": "5.0.0",
+    "run_id": "geo_offline_demo_00000001",
+    "generated_at": "2026-07-17T17:40:25Z",
+    "mode": "offline_import",
+    "status": "SEARCHING"
+  },
+  "input": {
+    "brand_name": "示例科技",
+    "website": "https://example.com",
+    "industry": "项目管理软件",
+    "target_customer": "20至200人的研发和项目团队",
+    "target_region": [
+      "中国大陆"
+    ],
+    "competitors": [
+      {
+        "name": "竞争品牌A",
+        "website": "https://competitor-a.example"
+      },
+      {
+        "name": "竞争品牌B",
+        "website": "https://competitor-b.example"
+      }
+    ],
+    "language": "zh-CN"
+  },
+  "methodology": {
+    "search_environment": "openai_web_search or offline_import",
+    "question_count": 10,
+    "batch_size": 5,
+    "metrics_script": "scripts/calculate_metrics.py",
+    "notes": [
+      "所有数值指标由确定性脚本计算。",
+      "引用必须来自实际搜索结果或用户输入。"
+    ]
+  },
+  "execution_summary": {
+    "search_result_count": 10,
+    "successful_result_count": 10,
+    "failed_result_count": 0,
+    "success_rate": 1.0,
+    "question_count": 10,
+    "opportunity_count": 4,
+    "content_brief_count": 2
+  },
+  "metrics": {
+    "schema_version": "5.0.0",
+    "sample": {
+      "valid_answer_count": 10,
+      "valid_question_ids": [
+        "q-001",
+        "q-002",
+        "q-003",
+        "q-004",
+        "q-005",
+        "q-006",
+        "q-007",
+        "q-008",
+        "q-009",
+        "q-010"
+      ],
+      "question_count": 10,
+      "recommendation_question_count": 5,
+      "claim_count": 4,
+      "verifiable_claim_count": 3
+    },
+    "mention_rate": {
+      "numerator": 4,
+      "denominator": 10,
+      "rate": 0.4,
+      "sample_size": 10,
+      "wilson_ci_95": {
+        "low": 0.16817758120350967,
+        "high": 0.6873304525498135,
+        "level": 0.95
+      }
+    },
+    "recommendation_rate": {
+      "numerator": 3,
+      "denominator": 5,
+      "rate": 0.6,
+      "sample_size": 5,
+      "wilson_ci_95": {
+        "low": 0.23071993220883708,
+        "high": 0.8823817688407467,
+        "level": 0.95
+      }
+    },
+    "visibility_score": {
+      "score": 21.36184210526316,
+      "raw_score": 21.36184210526316,
+      "numerator": 1.6235000000000002,
+      "denominator": 7.6000000000000005,
+      "negative_recommendation_count": 0
+    },
+    "recommendation_sov": {
+      "rate": 0.19068736141906878,
+      "brand_positive_score": 1.5910000000000002,
+      "competitor_positive_scores": {
+        "竞争品牌A": 4.18,
+        "竞争品牌B": 2.5725000000000002
+      },
+      "denominator": 8.343499999999999
+    },
+    "owned_citation_rate": {
+      "numerator": 3,
+      "denominator": 10,
+      "rate": 0.3,
+      "sample_size": 10,
+      "wilson_ci_95": {
+        "low": 0.10778928748621183,
+        "high": 0.6032267800204347,
+        "level": 0.95
+      }
+    },
+    "earned_support_rate": {
+      "numerator": 0,
+      "denominator": 10,
+      "rate": 0.0,
+      "sample_size": 10,
+      "wilson_ci_95": {
+        "low": 0.0,
+        "high": 0.2775401687666166,
+        "level": 0.95
+      }
+    },
+    "accuracy_score": {
+      "score": 0.5,
+      "correct_count": 1,
+      "partially_correct_count": 1,
+      "verifiable_claim_count": 3
+    },
+    "question_coverage": {
+      "numerator": 4,
+      "denominator": 10,
+      "rate": 0.4,
+      "sample_size": 10,
+      "wilson_ci_95": {
+        "low": 0.16817758120350967,
+        "high": 0.6873304525498135,
+        "level": 0.95
+      }
+    },
+    "geo_score": {
+      "score": 37.4,
+      "band": "foundation",
+      "breakdown": {
+        "visibility": 21.4,
+        "mention_rate": 40.0,
+        "recommendation_rate": 60.0,
+        "owned_citation_rate": 30.0
+      },
+      "weights": {
+        "visibility": 0.3,
+        "mention": 0.25,
+        "recommendation": 0.25,
+        "citation": 0.2
+      }
+    },
+    "sentiment_index": {
+      "score": null,
+      "sample_size": 0
+    },
+    "recommendation_type_distribution": null,
+    "citation_share_by_competitor": {
+      "竞争品牌A": {
+        "positive_score": 4.18,
+        "share": 0.619
+      },
+      "竞争品牌B": {
+        "positive_score": 2.5725,
+        "share": 0.381
+      }
+    },
+    "competitor_co_mentions": null,
+    "platform_citation_map": null,
+    "freshness": null,
+    "rag_readiness": null,
+    "citability": null,
+    "negative_signals": null,
+    "trust_stack": null,
+    "ai_perception": null
+  },
+  "question_analysis": [
+    {
+      "question_id": "q-001",
+      "text": "适合五十人研发团队的项目管理软件有哪些？",
+      "intent": "recommendation",
+      "business_value": 90,
+      "brand_mentioned": true,
+      "mention_type": "recommended",
+      "recommendation_rank": 3
+    },
+    {
+      "question_id": "q-002",
+      "text": "中小企业项目管理工具怎么选？",
+      "intent": "recommendation",
+      "business_value": 85,
+      "brand_mentioned": false,
+      "mention_type": null,
+      "recommendation_rank": null
+    },
+    {
+      "question_id": "q-003",
+      "text": "研发团队协作平台推荐",
+      "intent": "recommendation",
+      "business_value": 88,
+      "brand_mentioned": true,
+      "mention_type": "weakly_recommended",
+      "recommendation_rank": null
+    },
+    {
+      "question_id": "q-004",
+      "text": "项目管理软件和问题跟踪工具有什么区别？",
+      "intent": "category_awareness",
+      "business_value": 60,
+      "brand_mentioned": false,
+      "mention_type": null,
+      "recommendation_rank": null
+    },
+    {
+      "question_id": "q-005",
+      "text": "支持私有化部署的项目管理系统有哪些？",
+      "intent": "purchase",
+      "business_value": 92,
+      "brand_mentioned": true,
+      "mention_type": "recommended",
+      "recommendation_rank": 1
+    },
+    {
+      "question_id": "q-006",
+      "text": "竞争品牌A和竞争品牌B哪个更适合研发团队？",
+      "intent": "comparison",
+      "business_value": 80,
+      "brand_mentioned": false,
+      "mention_type": null,
+      "recommendation_rank": null
+    },
+    {
+      "question_id": "q-007",
+      "text": "敏捷研发场景下如何选择协作工具？",
+      "intent": "use_case",
+      "business_value": 75,
+      "brand_mentioned": false,
+      "mention_type": null,
+      "recommendation_rank": null
+    },
+    {
+      "question_id": "q-008",
+      "text": "项目管理软件的数据安全要注意什么？",
+      "intent": "trust_risk",
+      "business_value": 70,
+      "brand_mentioned": false,
+      "mention_type": null,
+      "recommendation_rank": null
+    },
+    {
+      "question_id": "q-009",
+      "text": "示例科技支持私有化部署吗？",
+      "intent": "brand_fact",
+      "business_value": 65,
+      "brand_mentioned": true,
+      "mention_type": "neutral_mention",
+      "recommendation_rank": null
+    },
+    {
+      "question_id": "q-010",
+      "text": "项目管理工具售后和服务响应一般如何评估？",
+      "intent": "support",
+      "business_value": 55,
+      "brand_mentioned": false,
+      "mention_type": null,
+      "recommendation_rank": null
+    }
+  ],
+  "competitor_analysis": [
+    {
+      "name": "竞争品牌A",
+      "mentions": 6,
+      "recommendations": 5
+    },
+    {
+      "name": "竞争品牌B",
+      "mentions": 4,
+      "recommendations": 4
+    }
+  ],
+  "citation_analysis": {
+    "total": 14,
+    "by_source_type": {
+      "earned_media": 5,
+      "owned": 3,
+      "competitor_owned": 1,
+      "institutional": 1,
+      "community": 1,
+      "unknown": 3
+    },
+    "citations": [
+      {
+        "question_id": "q-001",
+        "original_url": "https://media.example.org/pm-compare?utm_source=test",
+        "canonical_url": "https://media.example.org/pm-compare",
+        "domain": "media.example.org",
+        "title": "研发团队项目管理软件对比",
+        "source_type": "earned_media",
+        "citation_order": 1,
+        "supports_target_brand": false,
+        "supports_competitor": false,
+        "support_description": "",
+        "confidence": null,
+        "url_sha256": "16999546c8ac23c7df5378942a206b923727fd4d007239fdf56c07485b011d6b"
+      },
+      {
+        "question_id": "q-001",
+        "original_url": "https://example.com/product",
+        "canonical_url": "https://example.com/product",
+        "domain": "example.com",
+        "title": "示例科技官网",
+        "source_type": "owned",
+        "citation_order": 2,
+        "supports_target_brand": false,
+        "supports_competitor": false,
+        "support_description": "",
+        "confidence": null,
+        "url_sha256": "cdaccef16e2d3a0dd20f59c02c9455a07887507aecb218f3c336cea110fb0091"
+      },
+      {
+        "question_id": "q-002",
+        "original_url": "https://news.example.org/sme-tools",
+        "canonical_url": "https://news.example.org/sme-tools",
+        "domain": "news.example.org",
+        "title": "中小企业工具指南",
+        "source_type": "earned_media",
+        "citation_order": 1,
+        "supports_target_brand": false,
+        "supports_competitor": false,
+        "support_description": "",
+        "confidence": null,
+        "url_sha256": "219b541107be5e6def8522351de5fed250217ceb1de050da6c8a25afda6cb170"
+      },
+      {
+        "question_id": "q-002",
+        "original_url": "https://competitor-a.example/pricing",
+        "canonical_url": "https://competitor-a.example/pricing",
+        "domain": "competitor-a.example",
+        "title": "竞争品牌A官网",
+        "source_type": "competitor_owned",
+        "citation_order": 2,
+        "supports_target_brand": false,
+        "supports_competitor": false,
+        "support_description": "",
+        "confidence": null,
+        "url_sha256": "2902d085bb676d5bc7aebb13bf8f68524880e27bab4cbe33360ae6ac06a93b4e"
+      },
+      {
+        "question_id": "q-003",
+        "original_url": "https://blog.review.example/collab-2026",
+        "canonical_url": "https://blog.review.example/collab-2026",
+        "domain": "blog.review.example",
+        "title": "协作平台推荐2026",
+        "source_type": "earned_media",
+        "citation_order": 1,
+        "supports_target_brand": false,
+        "supports_competitor": false,
+        "support_description": "",
+        "confidence": null,
+        "url_sha256": "55c03a61457915e37032f98fccd01216ef1998aef81e4e028e77e07079abd5ed"
+      },
+      {
+        "question_id": "q-004",
+        "original_url": "https://zh.wikipedia.org/wiki/项目管理软件",
+        "canonical_url": "https://zh.wikipedia.org/wiki/项目管理软件",
+        "domain": "zh.wikipedia.org",
+        "title": "PM vs Issue Tracker",
+        "source_type": "institutional",
+        "citation_order": 1,
+        "supports_target_brand": false,
+        "supports_competitor": false,
+        "support_description": "",
+        "confidence": null,
+        "url_sha256": "2cec23468c06f5ea821537309b735672c22f0609afbce463db0bae5a0f8d89bc"
+      },
+      {
+        "question_id": "q-005",
+        "original_url": "https://example.com/private-deployment",
+        "canonical_url": "https://example.com/private-deployment",
+        "domain": "example.com",
+        "title": "私有化部署说明",
+        "source_type": "owned",
+        "citation_order": 1,
+        "supports_target_brand": false,
+        "supports_competitor": false,
+        "support_description": "",
+        "confidence": null,
+        "url_sha256": "76ee09fd35674bf77fa8640bc120eda8194603e2d84d10fccbf0066d907b65b4"
+      },
+      {
+        "question_id": "q-005",
+        "original_url": "https://community.zhihu.com/question/pm-private",
+        "canonical_url": "https://community.zhihu.com/question/pm-private",
+        "domain": "community.zhihu.com",
+        "title": "部署方式对比",
+        "source_type": "community",
+        "citation_order": 2,
+        "supports_target_brand": false,
+        "supports_competitor": false,
+        "support_description": "",
+        "confidence": null,
+        "url_sha256": "a2a04f7df6c83661168de8f9c1c56ed5daeb7bd1cd7b3cf60574a891462db137"
+      },
+      {
+        "question_id": "q-006",
+        "original_url": "https://media.example.org/a-vs-b",
+        "canonical_url": "https://media.example.org/a-vs-b",
+        "domain": "media.example.org",
+        "title": "A vs B 对比",
+        "source_type": "earned_media",
+        "citation_order": 1,
+        "supports_target_brand": false,
+        "supports_competitor": false,
+        "support_description": "",
+        "confidence": null,
+        "url_sha256": "26a7bec9a875cffe73339e6ecc79ff7ba35e1055010a487852c88e99dc183618"
+      },
+      {
+        "question_id": "q-007",
+        "original_url": "https://news.example.org/agile-tools",
+        "canonical_url": "https://news.example.org/agile-tools",
+        "domain": "news.example.org",
+        "title": "敏捷工具选择",
+        "source_type": "earned_media",
+        "citation_order": 1,
+        "supports_target_brand": false,
+        "supports_competitor": false,
+        "support_description": "",
+        "confidence": null,
+        "url_sha256": "794c78c0d2c9d3457e49bb7db8b8b36cc2113cfdaac5555c5f620e5b9b6574fd"
+      },
+      {
+        "question_id": "q-008",
+        "original_url": "https://www.nist.gov/publications",
+        "canonical_url": "https://www.nist.gov/publications",
+        "domain": "nist.gov",
+        "title": "安全基线",
+        "source_type": "unknown",
+        "citation_order": 1,
+        "supports_target_brand": false,
+        "supports_competitor": false,
+        "support_description": "",
+        "confidence": null,
+        "url_sha256": "c903967dc43641a71a372406ef73921575633344e0287e0c2718b30e012ca17e"
+      },
+      {
+        "question_id": "q-009",
+        "original_url": "https://forum.example.org/thread/123",
+        "canonical_url": "https://forum.example.org/thread/123",
+        "domain": "forum.example.org",
+        "title": "第三方转述",
+        "source_type": "unknown",
+        "citation_order": 1,
+        "supports_target_brand": false,
+        "supports_competitor": false,
+        "support_description": "",
+        "confidence": null,
+        "url_sha256": "84f417d6a955e64e5c8d68358a76f15f0627d6f4f191d6f3ab947af830432e1b"
+      },
+      {
+        "question_id": "q-009",
+        "original_url": "https://example.com/private-deployment",
+        "canonical_url": "https://example.com/private-deployment",
+        "domain": "example.com",
+        "title": "官方私有化页",
+        "source_type": "owned",
+        "citation_order": 2,
+        "supports_target_brand": false,
+        "supports_competitor": false,
+        "support_description": "",
+        "confidence": null,
+        "url_sha256": "76ee09fd35674bf77fa8640bc120eda8194603e2d84d10fccbf0066d907b65b4"
+      },
+      {
+        "question_id": "q-010",
+        "original_url": "https://directory.example.org/sla-guide",
+        "canonical_url": "https://directory.example.org/sla-guide",
+        "domain": "directory.example.org",
+        "title": "SLA 指南",
+        "source_type": "unknown",
+        "citation_order": 1,
+        "supports_target_brand": false,
+        "supports_competitor": false,
+        "support_description": "",
+        "confidence": null,
+        "url_sha256": "a80bab12a8e35499e603d7c4cb8c47c4a5aa650533549d044d757ad9380586c2"
+      }
+    ]
+  },
+  "claim_risks": [
+    {
+      "question_id": "q-009",
+      "brand_id": "target-brand",
+      "claim_text": "示例科技不支持私有化部署。",
+      "subject": "示例科技",
+      "predicate": "支持私有化部署",
+      "value": false,
+      "claim_type": "product_capability",
+      "verification_status": "incorrect",
+      "reference_fact_id": "fact-001",
+      "reference_url": "https://example.com/private-deployment",
+      "risk_level": "high",
+      "confidence": 0.96
+    },
+    {
+      "question_id": "q-005",
+      "brand_id": "target-brand",
+      "claim_text": "示例科技支持私有化部署。",
+      "subject": "示例科技",
+      "predicate": "支持私有化部署",
+      "value": true,
+      "claim_type": "product_capability",
+      "verification_status": "correct",
+      "reference_fact_id": "fact-001",
+      "reference_url": "https://example.com/private-deployment",
+      "risk_level": "high",
+      "confidence": 0.95
+    },
+    {
+      "question_id": "q-001",
+      "brand_id": "target-brand",
+      "claim_text": "示例科技适合需要私有化部署的团队。",
+      "subject": "示例科技",
+      "predicate": "适用场景",
+      "value": "私有化团队",
+      "claim_type": "positioning",
+      "verification_status": "partially_correct",
+      "reference_fact_id": null,
+      "reference_url": "https://example.com/product",
+      "risk_level": "medium",
+      "confidence": 0.7
+    }
+  ],
+  "opportunities": [
+    {
+      "title": "建设适合五十人研发团队的选购指南",
+      "target_question_ids": [
+        "q-001",
+        "q-002"
+      ],
+      "opportunity_type": "missing_recommendation_content",
+      "observed_gap": "目标品牌在部分高价值推荐问题中出现不足或排名靠后。",
+      "competitor_evidence": "竞争品牌A在多次回答中被首选推荐。",
+      "recommended_asset": "website_buying_guide",
+      "recommended_channels": [
+        "website",
+        "wechat"
+      ],
+      "required_evidence": [
+        "团队规模适配说明",
+        "功能对照表",
+        "真实客户案例"
+      ],
+      "validation_method": "发布后使用相同问题和一个自然语言变体复测",
+      "scores": {
+        "business_value": 90,
+        "competitive_gap": 85,
+        "brand_absence": 70,
+        "executability": 80,
+        "evidence_readiness": 60,
+        "risk_penalty": 0,
+        "total": 80.25
+      },
+      "id": "opp-001",
+      "rank": 1
+    },
+    {
+      "title": "发布与竞争品牌A/B的客观对比页",
+      "target_question_ids": [
+        "q-006",
+        "q-003"
+      ],
+      "opportunity_type": "competitor_comparison_gap",
+      "observed_gap": "对比类问题几乎只出现竞品。",
+      "competitor_evidence": "A/B 对比页被第三方媒体引用。",
+      "recommended_asset": "comparison_page",
+      "recommended_channels": [
+        "website"
+      ],
+      "required_evidence": [
+        "功能矩阵",
+        "价格区间说明",
+        "迁移成本"
+      ],
+      "validation_method": "复测对比类问题",
+      "scores": {
+        "business_value": 80,
+        "competitive_gap": 90,
+        "brand_absence": 100,
+        "executability": 75,
+        "evidence_readiness": 50,
+        "risk_penalty": 10,
+        "total": 72.75
+      },
+      "id": "opp-002",
+      "rank": 2
+    },
+    {
+      "title": "补强私有化部署权威说明页",
+      "target_question_ids": [
+        "q-005",
+        "q-009"
+      ],
+      "opportunity_type": "incorrect_claim_correction",
+      "observed_gap": "搜索回答中出现“不支持私有化”的错误信息。",
+      "competitor_evidence": "竞品混合部署信息更常被引用。",
+      "recommended_asset": "official_capability_page",
+      "recommended_channels": [
+        "website"
+      ],
+      "required_evidence": [
+        "官方私有化文档",
+        "架构图",
+        "合规说明"
+      ],
+      "validation_method": "复测品牌事实问题与私有化相关推荐问题",
+      "scores": {
+        "business_value": 92,
+        "competitive_gap": 60,
+        "brand_absence": 40,
+        "executability": 90,
+        "evidence_readiness": 85,
+        "risk_penalty": 0,
+        "total": 72.6
+      },
+      "id": "opp-003",
+      "rank": 3
+    },
+    {
+      "title": "提升官网在推荐答案中的被引概率",
+      "target_question_ids": [
+        "q-001",
+        "q-003",
+        "q-007"
+      ],
+      "opportunity_type": "owned_citation_gap",
+      "observed_gap": "自有域名引用率偏低。",
+      "competitor_evidence": "竞品官网定价页被引用。",
+      "recommended_asset": "structured_product_pages",
+      "recommended_channels": [
+        "website"
+      ],
+      "required_evidence": [
+        "FAQ",
+        "schema.org",
+        "清晰标题"
+      ],
+      "validation_method": "统计 owned citation rate 变化",
+      "scores": {
+        "business_value": 85,
+        "competitive_gap": 70,
+        "brand_absence": 50,
+        "executability": 70,
+        "evidence_readiness": 65,
+        "risk_penalty": 0,
+        "total": 70.0
+      },
+      "id": "opp-004",
+      "rank": 4
+    }
+  ],
+  "content_briefs": [
+    {
+      "opportunity_id": "opp-001",
+      "channel": "website",
+      "content_type": "buying_guide",
+      "working_title": "五十人研发团队如何选择项目管理软件",
+      "target_audience": "研发负责人",
+      "target_questions": [
+        "q-001",
+        "q-002"
+      ],
+      "business_goal": "进入推荐型AI搜索答案",
+      "current_gap": "高价值推荐问题中品牌出现不足",
+      "recommended_thesis": "以团队规模、私有化与协作深度作为选型标准",
+      "outline": [
+        {
+          "heading": "选择标准",
+          "required_points": [
+            "团队规模",
+            "部署方式",
+            "集成能力"
+          ]
+        },
+        {
+          "heading": "候选方案比较",
+          "required_points": [
+            "功能矩阵",
+            "总拥有成本"
+          ]
+        }
+      ],
+      "verified_facts": [
+        "支持私有化部署"
+      ],
+      "evidence_to_collect": [
+        "客户案例",
+        "性能数据"
+      ],
+      "competitor_points_to_address": [
+        "竞争品牌A上手成本",
+        "竞争品牌B文档协作"
+      ],
+      "forbidden_claims": [
+        "行业第一",
+        "百分之百提升效率"
+      ],
+      "internal_links": [
+        "https://example.com/product",
+        "https://example.com/private-deployment"
+      ],
+      "validation_queries": [
+        "适合五十人研发团队的项目管理软件有哪些？"
+      ],
+      "human_review_required": true
+    },
+    {
+      "opportunity_id": "opp-002",
+      "channel": "website",
+      "content_type": "capability_page",
+      "working_title": "示例科技私有化部署能力说明",
+      "target_audience": "IT负责人",
+      "target_questions": [
+        "q-005",
+        "q-009"
+      ],
+      "business_goal": "纠正错误事实并提升权威引用",
+      "current_gap": "第三方转述出现错误能力描述",
+      "recommended_thesis": "以官方架构与合规材料作为唯一事实来源",
+      "outline": [
+        {
+          "heading": "部署架构",
+          "required_points": [
+            "网络拓扑",
+            "组件清单"
+          ]
+        },
+        {
+          "heading": "安全与合规",
+          "required_points": [
+            "访问控制",
+            "审计"
+          ]
+        }
+      ],
+      "verified_facts": [
+        "支持私有化部署"
+      ],
+      "evidence_to_collect": [
+        "安全白皮书"
+      ],
+      "competitor_points_to_address": [],
+      "forbidden_claims": [
+        "行业第一"
+      ],
+      "internal_links": [
+        "https://example.com/private-deployment"
+      ],
+      "validation_queries": [
+        "示例科技支持私有化部署吗？"
+      ],
+      "human_review_required": true
+    }
+  ],
+  "limitations": [
+    "本次结果基于指定时间、问题样本、地区和当前搜索运行环境。AI 搜索回答可能随时间、模型、平台、用户上下文和搜索索引变化。本报告不代表所有 AI 产品、所有账号或全部用户的绝对排名，也不保证采取建议后能进入 AI 推荐结果。"
+  ],
+  "evidence_index": [
+    {
+      "url": "https://media.example.org/pm-compare?utm_source=test",
+      "title": "研发团队项目管理软件对比",
+      "question_id": "q-001",
+      "source": "search_result"
+    },
+    {
+      "url": "https://example.com/product",
+      "title": "示例科技官网",
+      "question_id": "q-001",
+      "source": "search_result"
+    },
+    {
+      "url": "https://news.example.org/sme-tools",
+      "title": "中小企业工具指南",
+      "question_id": "q-002",
+      "source": "search_result"
+    },
+    {
+      "url": "https://competitor-a.example/pricing",
+      "title": "竞争品牌A官网",
+      "question_id": "q-002",
+      "source": "search_result"
+    },
+    {
+      "url": "https://blog.review.example/collab-2026",
+      "title": "协作平台推荐2026",
+      "question_id": "q-003",
+      "source": "search_result"
+    },
+    {
+      "url": "https://zh.wikipedia.org/wiki/项目管理软件",
+      "title": "PM vs Issue Tracker",
+      "question_id": "q-004",
+      "source": "search_result"
+    },
+    {
+      "url": "https://example.com/private-deployment",
+      "title": "私有化部署说明",
+      "question_id": "q-005",
+      "source": "search_result"
+    },
+    {
+      "url": "https://community.zhihu.com/question/pm-private",
+      "title": "部署方式对比",
+      "question_id": "q-005",
+      "source": "search_result"
+    },
+    {
+      "url": "https://media.example.org/a-vs-b",
+      "title": "A vs B 对比",
+      "question_id": "q-006",
+      "source": "search_result"
+    },
+    {
+      "url": "https://news.example.org/agile-tools",
+      "title": "敏捷工具选择",
+      "question_id": "q-007",
+      "source": "search_result"
+    },
+    {
+      "url": "https://www.nist.gov/publications",
+      "title": "安全基线",
+      "question_id": "q-008",
+      "source": "search_result"
+    },
+    {
+      "url": "https://forum.example.org/thread/123",
+      "title": "第三方转述",
+      "question_id": "q-009",
+      "source": "search_result"
+    },
+    {
+      "url": "https://directory.example.org/sla-guide",
+      "title": "SLA 指南",
+      "question_id": "q-010",
+      "source": "search_result"
+    }
+  ],
+  "thirty_day_plan": [
+    "第1周：修复高风险错误声明，补齐官网核心事实页。",
+    "第2周：发布 Top3 机会对应的选购/对比内容。",
+    "第3周：补充第三方可引用证据与案例。",
+    "第4周：用相同问题样本复测提及率与推荐率。"
+  ]
+}

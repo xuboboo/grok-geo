@@ -1,0 +1,10 @@
+{"id":"W001","check":"reads_skill_md","expected":true}
+{"id":"W002","check":"runs_validate_input","expected":true}
+{"id":"W003","check":"creates_run","expected":true}
+{"id":"W004","check":"generates_questions","expected":true}
+{"id":"W005","check":"uses_web_search_or_offline","expected":true}
+{"id":"W006","check":"appends_search_results_immediately","expected":true}
+{"id":"W007","check":"runs_calculate_metrics","expected":true}
+{"id":"W008","check":"runs_validate_report","expected":true}
+{"id":"W009","check":"produces_six_outputs","expected":true}
+{"id":"W010","check":"sets_manifest_status","expected":true}

@@ -1,0 +1,1193 @@
+#!/usr/bin/env python3
+"""Shared utilities for grok-geo deterministic scripts."""
+
+from __future__ import annotations
+
+import csv
+import hashlib
+import json
+import os
+import re
+import sys
+import tempfile
+import time
+import unicodedata
+from collections import defaultdict
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
+
+SKILL_NAME = "grok-geo"
+SKILL_VERSION = "5.0.0"
+SCHEMA_VERSION = "5.0.0"
+
+# Hosted default; local override via GEO_AUDIT_RUNS_DIR or --base-dir
+HOSTED_RUNS_DIR = Path("/mnt/data/geo-audit-runs")
+LOCAL_RUNS_DIR_NAME = "geo-audit-runs"
+
+RUN_STATUSES = (
+    "INITIALIZED",
+    "VALIDATING_INPUT",
+    "RESEARCHING_BRAND",
+    "GENERATING_QUESTIONS",
+    "WAITING_FOR_SEARCH",
+    "SEARCHING",
+    "ANALYZING_ENTITIES",
+    "ANALYZING_CITATIONS",
+    "VERIFYING_CLAIMS",
+    "CALCULATING_METRICS",
+    "GENERATING_OPPORTUNITIES",
+    "RENDERING_REPORT",
+    "VALIDATING_REPORT",
+    "COMPLETED",
+    "PARTIAL",
+    "FAILED",
+)
+
+RECOMMENDATION_INTENTS = frozenset({"recommendation", "comparison", "purchase"})
+
+RECOMMENDATION_MENTION_TYPES = frozenset(
+    {
+        "strongly_recommended",
+        "recommended",
+        "weakly_recommended",
+    }
+)
+
+POSITIVE_RECOMMENDATION_TYPES = frozenset(
+    {
+        "strongly_recommended",
+        "recommended",
+        "weakly_recommended",
+    }
+)
+
+RECOMMENDATION_TYPE_SCORES: Dict[str, float] = {
+    "top_pick": 1.00,
+    "strong_alternative": 0.75,
+    "conditional": 0.45,
+    "mentioned_only": 0.15,
+    "discouraged": 0.00,
+    "not_mentioned": 0.00,
+}
+
+# v1.1 — Composite GEO score weights (equal split inspired by OneGlanse).
+GEO_SCORE_WEIGHTS = {
+    "visibility": 0.30,
+    "mention": 0.25,
+    "recommendation": 0.25,
+    "citation": 0.20,
+}
+
+TRACKING_PARAMS = frozenset(
+    {
+        "utm_source",
+        "utm_medium",
+        "utm_campaign",
+        "utm_term",
+        "utm_content",
+        "gclid",
+        "fbclid",
+        "yclid",
+        "mc_cid",
+        "mc_eid",
+    }
+)
+
+COMPANY_SUFFIXES = (
+    "有限公司",
+    "股份有限公司",
+    "集团",
+    "公司",
+    "inc",
+    "inc.",
+    "ltd",
+    "ltd.",
+    "llc",
+    "co",
+    "co.",
+    "corp",
+    "corp.",
+    "corporation",
+    "limited",
+)
+
+LIMITATION_TEXT = (
+    "本次结果基于指定时间、问题样本、地区和当前搜索运行环境。"
+    "AI 搜索回答可能随时间、模型、平台、用户上下文和搜索索引变化。"
+    "本报告不代表所有 AI 产品、所有账号或全部用户的绝对排名，"
+    "也不保证采取建议后能进入 AI 推荐结果。"
+)
+
+# Affirmative ranking promises. Disclaimers must use wording like "不保证…能进入"
+# (avoid bare "一定进入" in limitation text so it does not false-positive).
+FORBIDDEN_PROMISE_PATTERNS = (
+    r"保证排名",
+    r"(?<![不否])一定进入",
+    r"绝对第一",
+    r"保证进入",
+    r"保证.*前三",
+    r"100%提升",
+)
+
+
+def utc_now_iso() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def utc_stamp() -> str:
+    return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+
+
+def default_runs_base_dir() -> Path:
+    env = os.environ.get("GEO_AUDIT_RUNS_DIR")
+    if env:
+        return Path(env).expanduser().resolve()
+    if Path("/mnt/data").exists():
+        return HOSTED_RUNS_DIR
+    return (Path.cwd() / LOCAL_RUNS_DIR_NAME).resolve()
+
+
+def sha256_bytes(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def sha256_text(text: str) -> str:
+    return sha256_bytes(text.encode("utf-8"))
+
+
+def sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def sha256_json(obj: Any) -> str:
+    payload = json.dumps(obj, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return sha256_text(payload)
+
+
+def read_json(path: Union[str, Path]) -> Any:
+    p = Path(path)
+    with p.open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def write_json(path: Union[str, Path], data: Any, indent: int = 2) -> None:
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    text = json.dumps(data, ensure_ascii=False, indent=indent) + "\n"
+    atomic_write_text(p, text)
+
+
+def atomic_write_text(path: Path, text: str) -> None:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(prefix=path.name + ".", dir=str(path.parent))
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as f:
+            f.write(text)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_name, path)
+    finally:
+        if os.path.exists(tmp_name):
+            try:
+                os.remove(tmp_name)
+            except OSError:
+                pass
+
+
+def read_jsonl(path: Union[str, Path]) -> List[Dict[str, Any]]:
+    p = Path(path)
+    if not p.exists():
+        return []
+    rows: List[Dict[str, Any]] = []
+    with p.open("r", encoding="utf-8") as f:
+        for line_no, line in enumerate(f, 1):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"Invalid JSONL at {p}:{line_no}: {exc}") from exc
+            if not isinstance(obj, dict):
+                raise ValueError(f"JSONL row must be object at {p}:{line_no}")
+            rows.append(obj)
+    return rows
+
+
+def append_jsonl(path: Union[str, Path], obj: Dict[str, Any]) -> None:
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    line = json.dumps(obj, ensure_ascii=False, separators=(",", ":")) + "\n"
+    with p.open("a", encoding="utf-8", newline="\n") as f:
+        f.write(line)
+        f.flush()
+        os.fsync(f.fileno())
+
+
+def write_csv(path: Union[str, Path], rows: Sequence[Dict[str, Any]], fieldnames: Sequence[str]) -> None:
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    buf_lines: List[str] = []
+    # Build in memory then atomic write for consistency
+    from io import StringIO
+
+    sio = StringIO()
+    writer = csv.DictWriter(sio, fieldnames=list(fieldnames), extrasaction="ignore")
+    writer.writeheader()
+    for row in rows:
+        writer.writerow({k: _csv_cell(row.get(k)) for k in fieldnames})
+    atomic_write_text(p, sio.getvalue())
+
+
+def _csv_cell(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, (list, dict)):
+        return json.dumps(value, ensure_ascii=False)
+    return str(value)
+
+
+def ensure_run_dirs(run_dir: Path) -> Dict[str, Path]:
+    run_dir = Path(run_dir)
+    paths = {
+        "run": run_dir,
+        "input": run_dir / "input",
+        "raw": run_dir / "raw",
+        "intermediate": run_dir / "intermediate",
+        "output": run_dir / "output",
+        "logs": run_dir / "logs",
+    }
+    for p in paths.values():
+        p.mkdir(parents=True, exist_ok=True)
+    return paths
+
+
+def resolve_under(base: Path, candidate: Union[str, Path], *, allow_absolute_within: bool = False) -> Path:
+    """Resolve path and ensure it stays under base (no escape)."""
+    base_resolved = Path(base).resolve()
+    cand = Path(candidate)
+    if cand.is_absolute():
+        resolved = cand.resolve()
+    else:
+        resolved = (base_resolved / cand).resolve()
+    try:
+        resolved.relative_to(base_resolved)
+    except ValueError as exc:
+        raise PermissionError(f"Path escapes base directory: {candidate}") from exc
+    return resolved
+
+
+def assert_path_in_run(run_dir: Path, path: Union[str, Path]) -> Path:
+    return resolve_under(run_dir, path if Path(path).is_absolute() else Path(run_dir) / path)
+
+
+def generate_run_id() -> str:
+    import secrets
+
+    return f"geo_{utc_stamp()}_{secrets.token_hex(4)}"
+
+
+def load_manifest(run_dir: Path) -> Dict[str, Any]:
+    path = Path(run_dir) / "output" / "manifest.json"
+    if not path.exists():
+        # also allow intermediate location during init
+        alt = Path(run_dir) / "manifest.json"
+        if alt.exists():
+            return read_json(alt)
+        raise FileNotFoundError(f"manifest not found: {path}")
+    return read_json(path)
+
+
+def save_manifest(run_dir: Path, manifest: Dict[str, Any]) -> None:
+    manifest["updated_at"] = utc_now_iso()
+    write_json(Path(run_dir) / "output" / "manifest.json", manifest)
+
+
+def append_event(run_dir: Path, event_type: str, detail: Optional[Dict[str, Any]] = None) -> None:
+    event = {
+        "ts": utc_now_iso(),
+        "event": event_type,
+        "detail": detail or {},
+    }
+    append_jsonl(Path(run_dir) / "logs" / "events.jsonl", event)
+
+
+def new_manifest(
+    run_id: str,
+    mode: str,
+    input_sha256: str,
+    question_count: int = 0,
+) -> Dict[str, Any]:
+    now = utc_now_iso()
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "skill_name": SKILL_NAME,
+        "skill_version": SKILL_VERSION,
+        "run_id": run_id,
+        "mode": mode,
+        "status": "INITIALIZED",
+        "started_at": now,
+        "updated_at": now,
+        "completed_at": None,
+        "input_sha256": input_sha256,
+        "question_count": question_count,
+        "search_result_count": 0,
+        "successful_result_count": 0,
+        "failed_result_count": 0,
+        "current_batch": 0,
+        "warnings": [],
+        "errors": [],
+        "outputs": {},
+    }
+
+
+def wilson_ci(successes: int, n: int, z: float = 1.96) -> Optional[Dict[str, float]]:
+    """Wilson score interval for binomial proportion (95% default)."""
+    if n <= 0:
+        return None
+    p = successes / n
+    z2 = z * z
+    denom = 1.0 + z2 / n
+    center = (p + z2 / (2 * n)) / denom
+    margin = (z * ((p * (1 - p) / n + z2 / (4 * n * n)) ** 0.5)) / denom
+    low = max(0.0, center - margin)
+    high = min(1.0, center + margin)
+    return {"low": low, "high": high, "level": 0.95}
+
+
+def clamp(value: float, lo: float, hi: float) -> float:
+    return max(lo, min(hi, value))
+
+
+def geo_score(
+    visibility_score: float,
+    mention_rate: float,
+    recommendation_rate: float,
+    owned_citation_rate: float,
+) -> Dict[str, Any]:
+    """Composite GEO score (0-100).
+
+    All inputs are already 0-1 (except visibility which is 0-100).
+    Returns {"score": 0-100, "band": ..., "breakdown": {...}}.
+    """
+    vis_norm = clamp(visibility_score / 100.0, 0.0, 1.0)
+    mnt = clamp(mention_rate, 0.0, 1.0)
+    rec = clamp(recommendation_rate, 0.0, 1.0)
+    cite = clamp(owned_citation_rate, 0.0, 1.0)
+
+    w = GEO_SCORE_WEIGHTS
+    raw = (
+        w["visibility"] * vis_norm
+        + w["mention"] * mnt
+        + w["recommendation"] * rec
+        + w["citation"] * cite
+    )
+    score = round(clamp(raw * 100.0, 0.0, 100.0), 1)
+
+    if score >= 86:
+        band = "excellent"
+    elif score >= 68:
+        band = "good"
+    elif score >= 36:
+        band = "foundation"
+    else:
+        band = "critical"
+
+    return {
+        "score": score,
+        "band": band,
+        "breakdown": {
+            "visibility": round(vis_norm * 100.0, 1),
+            "mention_rate": round(mnt * 100.0, 1),
+            "recommendation_rate": round(rec * 100.0, 1),
+            "owned_citation_rate": round(cite * 100.0, 1),
+        },
+        "weights": dict(w),
+    }
+
+
+# ─── v1.2  Content Freshness & RAG Readiness ────────────────────────────
+
+# Freshness decay deduction caps per pattern
+FRESHNESS_DECAY_CAPS: Dict[str, int] = {
+    "temporal": 30,
+    "statistical": 25,
+    "version": 20,
+    "event": 15,
+    "price": 10,
+}
+
+# RAG chunk readiness weights
+RAG_CHUNK_WEIGHTS: Dict[str, float] = {
+    "paragraph_structure": 0.25,
+    "heading_hierarchy": 0.20,
+    "definition_openings": 0.15,
+    "self_containment": 0.20,
+    "anchor_sentences": 0.10,
+    "structured_data": 0.10,
+}
+
+
+def freshness_score(decay_signals: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
+    """Compute content freshness score (0-100, higher = fresher).
+
+    Each signal: {"pattern": str, "severity": "high"|"medium"|"low", "evidence": str}
+    Severity multipliers: high=1.0, medium=0.6, low=0.3
+
+    Returns {"score": 0-100, "band": ..., "total_deduction": int, "decay_count": int}.
+    """
+    severity_mult = {"high": 1.0, "medium": 0.6, "low": 0.3}
+    total_deduction = 0
+    for sig in decay_signals:
+        pattern = sig.get("pattern", "")
+        sev = sig.get("severity", "medium")
+        cap = FRESHNESS_DECAY_CAPS.get(pattern, 10)
+        mult = severity_mult.get(sev, 0.5)
+        total_deduction += int(cap * mult)
+
+    score = clamp(100.0 - total_deduction, 0.0, 100.0)
+    if score >= 86:
+        band = "fresh"
+    elif score >= 68:
+        band = "aging"
+    elif score >= 36:
+        band = "stale"
+    else:
+        band = "rotting"
+
+    return {
+        "score": round(score, 1),
+        "band": band,
+        "total_deduction": total_deduction,
+        "decay_count": len(decay_signals),
+    }
+
+
+def rag_readiness(dimensions: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+    """Compute RAG chunk readiness score (0-100, higher = more chunkable).
+
+    Each dimension: {"score": 0-100, "issues": [...]}
+    Dimensions: paragraph_structure, heading_hierarchy, definition_openings,
+                self_containment, anchor_sentences, structured_data.
+
+    Returns {"score": 0-100, "band": ..., "breakdown": {...}}.
+    """
+    weighted = 0.0
+    breakdown = {}
+    for dim, weight in RAG_CHUNK_WEIGHTS.items():
+        d = dimensions.get(dim, {})
+        s = float(d.get("score", 0))
+        weighted += s * weight
+        breakdown[dim] = {"score": round(s, 1), "weight": weight, "issues": d.get("issues", [])}
+
+    score = clamp(round(weighted, 1), 0.0, 100.0)
+    if score >= 86:
+        band = "rag_ready"
+    elif score >= 68:
+        band = "good"
+    elif score >= 36:
+        band = "needs_work"
+    else:
+        band = "not_ready"
+
+    return {
+        "score": score,
+        "band": band,
+        "breakdown": breakdown,
+    }
+
+
+# ─── v1.2  Platform Citation Map helpers ──────────────────────────────────
+
+PLATFORMS = ("chatgpt", "perplexity", "claude", "gemini", "ai_overview")
+
+
+def aggregate_platform_citations(
+    search_results: Sequence[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """Aggregate cross-platform citation data from search results.
+
+    Each search result should have: question_id, platform, citations[], brand_mentioned, brand_cited.
+    Returns platform-level and cross-platform summary.
+    """
+    by_question: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    for r in search_results:
+        qid = r.get("question_id", "")
+        by_question[qid].append(r)
+
+    cross_platform_count = 0
+    total_questions = 0
+    platform_mention_rates: Dict[str, List[bool]] = defaultdict(list)
+    domain_platform_map: Dict[str, set] = defaultdict(set)
+
+    for qid, results in by_question.items():
+        total_questions += 1
+        platforms_with_mention = set()
+        for r in results:
+            plat = r.get("platform", "")
+            mentioned = bool(r.get("brand_mentioned"))
+            platform_mention_rates[plat].append(mentioned)
+            if mentioned:
+                platforms_with_mention.add(plat)
+            for cit in (r.get("citations") or []):
+                dom = cit.get("domain", "")
+                if dom:
+                    domain_platform_map[dom].add(plat)
+        if len(platforms_with_mention) >= 2:
+            cross_platform_count += 1
+
+    # Per-platform mention rates
+    plat_rates = {}
+    for plat, flags in platform_mention_rates.items():
+        plat_rates[plat] = round(sum(flags) / len(flags), 4) if flags else 0.0
+
+    # Platform parity (1 - stddev of rates)
+    if len(plat_rates) >= 2:
+        rates = list(plat_rates.values())
+        mean_r = sum(rates) / len(rates)
+        var = sum((r - mean_r) ** 2 for r in rates) / len(rates)
+        std = var ** 0.5
+        parity = round(max(0.0, 1.0 - std), 4)
+    else:
+        parity = None
+
+    # Source overlap: domains cited by ≥ 2 platforms
+    total_domains = len(domain_platform_map)
+    overlap_domains = sum(1 for plats in domain_platform_map.values() if len(plats) >= 2)
+    overlap_rate = round(overlap_domains / total_domains, 4) if total_domains > 0 else None
+
+    # Platform advantage ranking
+    ranking = sorted(plat_rates.items(), key=lambda x: x[1], reverse=True)
+
+    return {
+        "cross_platform_visibility_score": round(cross_platform_count / total_questions, 4) if total_questions > 0 else None,
+        "platform_parity_index": parity,
+        "source_overlap_rate": overlap_rate,
+        "platform_mention_rates": plat_rates,
+        "platform_advantage_map": {
+            "best_platform": ranking[0][0] if ranking else None,
+            "worst_platform": ranking[-1][0] if ranking else None,
+            "platform_ranking": [{"platform": p, "mention_rate": r} for p, r in ranking],
+        },
+        "total_questions_analyzed": total_questions,
+        "total_domains_cited": total_domains,
+        "cross_platform_domains": overlap_domains,
+    }
+
+
+def normalize_entity_name(name: str, *, strip_company_suffix: bool = True) -> str:
+    if name is None:
+        return ""
+    # Strip trademark symbols BEFORE NFKC (NFKC maps ™→tm, ®→r).
+    text = re.sub(r"[™®©℠]", "", str(name))
+    text = unicodedata.normalize("NFKC", text)
+    text = text.replace("\u3000", " ")
+    # normalize punctuation to space-ish
+    text = re.sub(r"[，。！？；：、“”‘’（）【】《》〈〉\[\]{}|\\/<>~`@#$%^&*_+=]", " ", text)
+    text = re.sub(r"[,.!?;:\"'`]", " ", text)
+    text = text.lower()
+    text = re.sub(r"\s+", " ", text).strip()
+    if strip_company_suffix and text:
+        for suffix in sorted(COMPANY_SUFFIXES, key=len, reverse=True):
+            s = suffix.lower()
+            if text.endswith(" " + s):
+                text = text[: -(len(s) + 1)].strip()
+            elif text.endswith(s) and len(text) > len(s):
+                text = text[: -len(s)].strip()
+    return text
+
+
+def names_conflict(a: str, b: str) -> bool:
+    return normalize_entity_name(a) == normalize_entity_name(b) and bool(normalize_entity_name(a))
+
+
+def domain_from_url(url: str) -> str:
+    from urllib.parse import urlparse
+
+    try:
+        parsed = urlparse(url)
+        host = (parsed.hostname or "").lower()
+        if host.startswith("www."):
+            host = host[4:]
+        return host
+    except Exception:
+        return ""
+
+
+def is_same_or_subdomain(domain: str, root: str) -> bool:
+    domain = (domain or "").lower().lstrip(".")
+    root = (root or "").lower().lstrip(".")
+    if not domain or not root:
+        return False
+    return domain == root or domain.endswith("." + root)
+
+
+def exit_with(code: int, message: str, *, stream: str = "stderr") -> None:
+    out = sys.stderr if stream == "stderr" else sys.stdout
+    print(message, file=out)
+    raise SystemExit(code)
+
+
+def print_json(data: Any) -> None:
+    print(json.dumps(data, ensure_ascii=False, indent=2))
+
+
+def load_skill_root() -> Path:
+    return Path(__file__).resolve().parent.parent
+
+
+def schema_path(name: str) -> Path:
+    return load_skill_root() / "schemas" / name
+
+
+# Minimal JSON Schema subset validator (draft 2020-12 subset for our schemas)
+def validate_against_schema(instance: Any, schema: Dict[str, Any], path: str = "$") -> List[str]:
+    errors: List[str] = []
+
+    def err(msg: str) -> None:
+        errors.append(f"{path}: {msg}")
+
+    if not isinstance(schema, dict):
+        return errors
+
+    if "const" in schema and instance != schema["const"]:
+        err(f"expected const {schema['const']!r}")
+
+    if "enum" in schema and instance not in schema["enum"]:
+        err(f"value not in enum {schema['enum']}")
+
+    types = schema.get("type")
+    if types is not None:
+        type_list = types if isinstance(types, list) else [types]
+        if not _json_type_matches(instance, type_list):
+            err(f"type mismatch, expected {types}, got {type(instance).__name__}")
+            return errors  # further checks may be invalid
+
+    if instance is None:
+        return errors
+
+    if "type" in schema:
+        tlist = schema["type"] if isinstance(schema["type"], list) else [schema["type"]]
+        if "null" in tlist and instance is None:
+            return errors
+
+    if isinstance(instance, dict) and (schema.get("type") == "object" or "properties" in schema or "required" in schema):
+        props = schema.get("properties") or {}
+        required = schema.get("required") or []
+        for key in required:
+            if key not in instance:
+                err(f"missing required property '{key}'")
+        if schema.get("additionalProperties") is False:
+            for key in instance:
+                if key not in props:
+                    err(f"additional property not allowed: '{key}'")
+        for key, subschema in props.items():
+            if key in instance:
+                errors.extend(validate_against_schema(instance[key], subschema, f"{path}.{key}"))
+        if "maxProperties" in schema and len(instance) > schema["maxProperties"]:
+            err("too many properties")
+
+    if isinstance(instance, list) and (schema.get("type") == "array" or "items" in schema):
+        if "maxItems" in schema and len(instance) > schema["maxItems"]:
+            err(f"maxItems {schema['maxItems']} exceeded")
+        if "minItems" in schema and len(instance) < schema["minItems"]:
+            err(f"minItems {schema['minItems']} not met")
+        items = schema.get("items")
+        if isinstance(items, dict):
+            for i, item in enumerate(instance):
+                errors.extend(validate_against_schema(item, items, f"{path}[{i}]"))
+
+    if isinstance(instance, str):
+        if "minLength" in schema and len(instance) < schema["minLength"]:
+            err(f"minLength {schema['minLength']}")
+        if "maxLength" in schema and len(instance) > schema["maxLength"]:
+            err(f"maxLength {schema['maxLength']}")
+        if "pattern" in schema and not re.search(schema["pattern"], instance):
+            err(f"pattern mismatch: {schema['pattern']}")
+        if schema.get("format") == "uri":
+            if not re.match(r"^https?://", instance):
+                err("format uri requires http(s)")
+        if schema.get("format") == "date":
+            if not re.match(r"^\d{4}-\d{2}-\d{2}$", instance):
+                err("format date YYYY-MM-DD")
+
+    if isinstance(instance, (int, float)) and not isinstance(instance, bool):
+        if "minimum" in schema and instance < schema["minimum"]:
+            err(f"minimum {schema['minimum']}")
+        if "maximum" in schema and instance > schema["maximum"]:
+            err(f"maximum {schema['maximum']}")
+
+    return errors
+
+
+def _json_type_matches(instance: Any, type_list: Sequence[str]) -> bool:
+    for t in type_list:
+        if t == "object" and isinstance(instance, dict):
+            return True
+        if t == "array" and isinstance(instance, list):
+            return True
+        if t == "string" and isinstance(instance, str):
+            return True
+        if t == "integer" and isinstance(instance, int) and not isinstance(instance, bool):
+            return True
+        if t == "number" and isinstance(instance, (int, float)) and not isinstance(instance, bool):
+            return True
+        if t == "boolean" and isinstance(instance, bool):
+            return True
+        if t == "null" and instance is None:
+            return True
+    return False
+
+
+def load_schema(name: str) -> Dict[str, Any]:
+    return read_json(schema_path(name))
+
+
+def file_lock(path: Path, timeout: float = 30.0) -> "FileLock":
+    return FileLock(path, timeout=timeout)
+
+
+class FileLock:
+    """Simple exclusive lock via lock file + atomic create (cross-platform)."""
+
+    def __init__(self, path: Path, timeout: float = 30.0) -> None:
+        self.lock_path = Path(str(path) + ".lock")
+        self.timeout = timeout
+        self._fd: Optional[int] = None
+
+    def __enter__(self) -> "FileLock":
+        start = time.time()
+        while True:
+            try:
+                self._fd = os.open(str(self.lock_path), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                os.write(self._fd, str(os.getpid()).encode("ascii"))
+                return self
+            except FileExistsError:
+                if time.time() - start > self.timeout:
+                    raise TimeoutError(f"Could not acquire lock: {self.lock_path}")
+                time.sleep(0.05)
+
+    def __exit__(self, *args: Any) -> None:
+        if self._fd is not None:
+            try:
+                os.close(self._fd)
+            except OSError:
+                pass
+            self._fd = None
+        try:
+            self.lock_path.unlink(missing_ok=True)  # type: ignore[call-arg]
+        except TypeError:
+            # py < 3.8
+            if self.lock_path.exists():
+                self.lock_path.unlink()
+        except OSError:
+            pass
+
+
+def position_score(mention_type: Optional[str], recommendation_rank: Optional[int]) -> float:
+    """Map mention type / rank to position score per §13.3."""
+    if not mention_type:
+        return 0.0
+    mt = mention_type
+    if mt == "not_recommended":
+        return -0.30
+    if mt == "strongly_recommended":
+        if recommendation_rank == 1:
+            return 1.00
+        if recommendation_rank == 2:
+            return 0.75
+        if recommendation_rank == 3:
+            return 0.55
+        return 0.30
+    if mt == "recommended":
+        if recommendation_rank == 1:
+            return 1.00
+        if recommendation_rank == 2:
+            return 0.75
+        if recommendation_rank == 3:
+            return 0.55
+        return 0.30
+    if mt == "weakly_recommended":
+        return 0.20
+    if mt == "positive_mention":
+        return 0.10
+    if mt == "neutral_mention":
+        return 0.05
+    if mt in {"comparison_only", "citation_only"}:
+        return 0.05
+    if mt == "negative_mention":
+        return 0.0
+    return 0.0
+
+
+def is_recommendation_mention(mention_type: Optional[str]) -> bool:
+    return mention_type in RECOMMENDATION_MENTION_TYPES
+
+
+def normalize_question_text(text: str) -> str:
+    t = unicodedata.normalize("NFKC", text or "")
+    # full-width digits to half
+    trans = str.maketrans("０１２３４５６７８９", "0123456789")
+    t = t.translate(trans)
+    t = t.lower()
+    t = re.sub(r"[，。！？；：、“”‘’（）【】《》\.,!?;:\"'`\[\]{}]", "", t)
+    t = re.sub(r"\s+", "", t)
+    for w in ("请问", "什么", "哪些", "如何", "怎么", "怎样", "吗", "呢"):
+        t = t.replace(w, "")
+    return t
+
+
+def contains_brand_token(text: str, brand_name: str, aliases: Optional[Sequence[str]] = None) -> bool:
+    hay = normalize_entity_name(text, strip_company_suffix=False)
+    needles = [normalize_entity_name(brand_name, strip_company_suffix=False)]
+    for a in aliases or []:
+        needles.append(normalize_entity_name(a, strip_company_suffix=False))
+    for n in needles:
+        if n and n in hay:
+            return True
+    return False
+
+
+def rate_with_ci(num: int, den: int) -> Dict[str, Any]:
+    rate = (num / den) if den > 0 else None
+    return {
+        "numerator": num,
+        "denominator": den,
+        "rate": rate,
+        "sample_size": den,
+        "wilson_ci_95": wilson_ci(num, den) if den > 0 else None,
+    }
+
+
+# ─── v1.4  Search Query Templates ────────────────────────────────────────
+
+SEARCH_TEMPLATE_TYPES = (
+    "best_tools",      # 品类最佳推荐
+    "alternatives",    # 竞品替代方案
+    "recommendations", # 场景推荐
+    "reviews",         # 品牌评价
+    "comparisons",     # 功能对比
+)
+
+# Standard mode: 30 questions distributed across templates
+STANDARD_TEMPLATE_DISTRIBUTION = {
+    "best_tools": 6,
+    "alternatives": 5,
+    "recommendations": 8,
+    "reviews": 6,
+    "comparisons": 5,
+}
+
+# Quick mode: 10 questions
+QUICK_TEMPLATE_DISTRIBUTION = {
+    "best_tools": 2,
+    "alternatives": 2,
+    "recommendations": 3,
+    "reviews": 2,
+    "comparisons": 1,
+}
+
+# Platform feature detection signals
+PLATFORM_FEATURES = {
+    "chatgpt": {"inline_citations": "occasional", "source_cards": True, "style": "narrative", "list_common": True},
+    "perplexity": {"inline_citations": "always", "source_cards": True, "style": "citation_dense", "list_common": True},
+    "claude": {"inline_citations": "occasional", "source_cards": False, "style": "analytical", "list_common": False},
+    "gemini": {"inline_citations": "occasional", "source_cards": True, "style": "list_oriented", "list_common": True},
+}
+
+# ─── v1.6  Loop Engineering ────────────────────────────────────────────────
+
+IMPROVEMENT_ACTION_TYPES = (
+    "create_content",
+    "update_content", 
+    "fix_misperception",
+    "build_backlinks",
+    "fix_technical",
+    "expand_coverage",
+)
+
+RETEST_INTERVALS = {
+    "create_content": 14,
+    "update_content": 7,
+    "fix_misperception": 7,
+    "build_backlinks": 30,
+    "fix_technical": 3,
+    "expand_coverage": 14,
+}
+
+# ─── v1.7  Funnel Stage / Attribute Analysis / Alerts ────────────────────
+
+FUNNEL_STAGES = ("awareness", "consideration", "conversion", "retention")
+
+INTENT_TO_FUNNEL = {
+    "category_knowledge": "awareness",
+    "use_case": "awareness",
+    "recommendation": "consideration",
+    "comparison": "consideration",
+    "purchase": "conversion",
+    "brand_fact": "retention",
+    "usage_support": "retention",
+}
+
+ATTRIBUTE_CATEGORIES = (
+    "core_features",
+    "pricing",
+    "ease_of_use",
+    "integrations",
+    "support",
+    "scalability",
+    "security",
+    "performance",
+)
+
+# Chinese keywords for attribute detection
+ATTRIBUTE_KEYWORDS = {
+    "core_features": ["功能", "特性", "能力", "feature", "capability", "functionality"],
+    "pricing": ["价格", "定价", "收费", "免费", "费用", "price", "pricing", "cost", "free"],
+    "ease_of_use": ["易用", "简单", "上手", "学习曲线", "easy", "simple", "intuitive", "learning curve"],
+    "integrations": ["集成", "对接", "插件", "API", "integration", "plugin", "connect"],
+    "support": ["支持", "客服", "服务", "文档", "support", "service", "documentation"],
+    "scalability": ["扩展", "规模化", "大规模", "scalab", "enterprise", "scale"],
+    "security": ["安全", "合规", "隐私", "加密", "security", "compliance", "privacy", "encrypt"],
+    "performance": ["性能", "速度", "响应", "稳定", "performance", "speed", "fast", "reliable"],
+}
+
+ALERT_THRESHOLDS = {
+    "mention_rate": {"warning": 0.15, "critical": 0.30},
+    "recommendation_rate": {"warning": 0.15, "critical": 0.30},
+    "geo_score": {"warning": 10, "critical": 25},
+    "visibility_score": {"warning": 10, "critical": 25},
+}
+
+# ─── v1.8  Publisher Influence / Journey Metrics / Optimization Engine ────
+
+PUBLISHER_CATEGORIES = (
+    "industry_media",
+    "tech_blog",
+    "review_site",
+    "academic",
+    "social_influencer",
+    "news_outlet",
+    "community_forum",
+    "unknown",
+)
+
+JOURNEY_STAGES = (
+    "problem_awareness",
+    "solution_awareness",
+    "vendor_comparison",
+    "purchase_decision",
+    "post_purchase",
+)
+
+FUNNEL_TO_JOURNEY = {
+    "awareness": "problem_awareness",
+    "consideration": "vendor_comparison",
+    "conversion": "purchase_decision",
+    "retention": "post_purchase",
+}
+
+OPTIMIZATION_ACTION_CATEGORIES = (
+    "content_creation",
+    "content_update",
+    "technical_fix",
+    "backlink_building",
+    "misperception_correction",
+    "schema_optimization",
+    "faq_creation",
+)
+
+# Domain patterns for publisher classification
+PUBLISHER_DOMAIN_PATTERNS = {
+    "tech_blog": ["medium.com", "dev.to", "hashnode", "substack", "wordpress.com"],
+    "review_site": ["g2.com", "capterra.com", "trustpilot.com", "getapp.com", "trustadius.com"],
+    "academic": [".edu", "arxiv.org", "scholar.google", "researchgate.net"],
+    "news_outlet": ["techcrunch.com", "theverge.com", "wired.com", "zdnet.com", "thenextweb.com"],
+    "community_forum": ["reddit.com", "quora.com", "stackoverflow.com", "github.com"],
+}
+
+
+# Negative signal deduction caps by severity
+NEGATIVE_SIGNAL_DEDUCTIONS: Dict[str, int] = {
+    "critical": 15,
+    "high": 10,
+    "medium": 5,
+    "low": 2,
+}
+
+# Trust stack layer weights
+TRUST_STACK_WEIGHTS: Dict[str, float] = {
+    "technical": 0.25,
+    "identity": 0.20,
+    "social": 0.20,
+    "academic": 0.15,
+    "consistency": 0.20,
+}
+
+# AI perception dimension weights
+PERCEPTION_WEIGHTS: Dict[str, float] = {
+    "positioning_clarity": 0.25,
+    "price_transparency": 0.15,
+    "claim_consistency": 0.20,
+    "sentiment_strength": 0.25,
+    "competitor_framing": 0.15,
+}
+
+
+def citability_score(method_scores: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+    """Compute content citability score from 20 weighted method scores.
+
+    Each method: {"score": int, "max": int, "evidence": str}
+    Returns {"score": 0-100, "band": ..., "top_strengths": [...], "top_weaknesses": [...]}.
+    """
+    total = 0.0
+    max_total = 0.0
+    scored_methods = []
+
+    for method, data in method_scores.items():
+        s = float(data.get("score", 0))
+        m = float(data.get("max", 1))
+        total += s
+        max_total += m
+        scored_methods.append((method, s, m, data.get("evidence", "")))
+
+    score = clamp(round((total / max_total) * 100.0, 1) if max_total > 0 else 0.0, 0.0, 100.0)
+
+    if score >= 86:
+        band = "highly_citable"
+    elif score >= 68:
+        band = "good"
+    elif score >= 36:
+        band = "foundation"
+    else:
+        band = "not_citable"
+
+    # Sort by utilization (score/max) for strengths and weaknesses
+    sorted_by_util = sorted(scored_methods, key=lambda x: x[1] / x[2] if x[2] > 0 else 0, reverse=True)
+    strengths = [{"method": m, "score": s, "max": mx, "evidence": e} for m, s, mx, e in sorted_by_util[:3] if s > 0]
+    weaknesses = [{"method": m, "score": s, "max": mx, "evidence": e} for m, s, mx, e in sorted_by_util[-3:] if s < mx]
+
+    return {
+        "score": score,
+        "band": band,
+        "total_points": round(total, 1),
+        "max_points": round(max_total, 1),
+        "top_strengths": strengths,
+        "top_weaknesses": weaknesses,
+        "method_scores": {m: {"score": s, "max": mx} for m, s, mx, _ in scored_methods},
+    }
+
+
+def negative_signal_score(signals: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
+    """Compute negative signal score (0-100, higher = fewer problems).
+
+    Each signal: {"type": str, "severity": "critical"|"high"|"medium"|"low", "evidence": str}
+    """
+    total_deduction = 0
+    for sig in signals:
+        sev = sig.get("severity", "medium")
+        total_deduction += NEGATIVE_SIGNAL_DEDUCTIONS.get(sev, 5)
+
+    score = clamp(100.0 - total_deduction, 0.0, 100.0)
+
+    if score >= 86:
+        band = "clean"
+    elif score >= 68:
+        band = "minor_issues"
+    elif score >= 36:
+        band = "problematic"
+    else:
+        band = "severe"
+
+    return {
+        "score": round(score, 1),
+        "band": band,
+        "signal_count": len(signals),
+        "total_deduction": total_deduction,
+    }
+
+
+def trust_stack_score(layers: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+    """Compute 5-layer trust stack score (0-100, A-F grade).
+
+    Each layer: {"score": 0-100, "issues": [...]}
+    Layers: technical, identity, social, academic, consistency.
+    """
+    weighted = 0.0
+    layer_details = {}
+    weakest_name = ""
+    weakest_score = 101.0
+    strongest_name = ""
+    strongest_score = -1.0
+
+    for layer, weight in TRUST_STACK_WEIGHTS.items():
+        d = layers.get(layer, {})
+        s = float(d.get("score", 0))
+        weighted += s * weight
+        layer_details[layer] = {"score": round(s, 1), "weight": weight, "issues": d.get("issues", [])}
+        if s < weakest_score:
+            weakest_score = s
+            weakest_name = layer
+        if s > strongest_score:
+            strongest_score = s
+            strongest_name = layer
+
+    score = clamp(round(weighted, 1), 0.0, 100.0)
+
+    if score >= 90:
+        grade = "A"
+    elif score >= 75:
+        grade = "B"
+    elif score >= 60:
+        grade = "C"
+    elif score >= 40:
+        grade = "D"
+    else:
+        grade = "F"
+
+    return {
+        "score": score,
+        "grade": grade,
+        "layers": layer_details,
+        "weakest_layer": weakest_name,
+        "strongest_layer": strongest_name,
+    }
+
+
+def ai_perception_score(dimensions: Dict[str, float]) -> Dict[str, Any]:
+    """Compute AI perception score (0-100).
+
+    Each dimension: 0.0-1.0 normalized score.
+    Dimensions: positioning_clarity, price_transparency, claim_consistency,
+                sentiment_strength, competitor_framing.
+    """
+    weighted = 0.0
+    breakdown = {}
+
+    for dim, weight in PERCEPTION_WEIGHTS.items():
+        s = clamp(dimensions.get(dim, 0.0), 0.0, 1.0)
+        weighted += s * weight
+        breakdown[dim] = {"score": round(s * 100, 1), "weight": weight}
+
+    score = clamp(round(weighted * 100.0, 1), 0.0, 100.0)
+
+    if score >= 86:
+        band = "excellent"
+    elif score >= 68:
+        band = "favorable"
+    elif score >= 36:
+        band = "mixed"
+    else:
+        band = "negative"
+
+    return {
+        "score": score,
+        "band": band,
+        "breakdown": breakdown,
+    }

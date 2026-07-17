@@ -1,0 +1,19 @@
+[project]
+name = "grok-geo"
+version = "1.0.0"
+description = "GEO brand audit Agent Skill — deterministic scripts and schemas"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "grok-geo" }]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["skill/grok-geo/scripts"]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"

@@ -1,0 +1,375 @@
+{
+  "fixtures": [
+    {
+      "id": "M001",
+      "description": "simple rates",
+      "valid_answers": 10,
+      "brand_mentions": 4,
+      "recommendation_answers": 5,
+      "brand_recommendations": 2,
+      "owned_citation_answers": 1,
+      "expected": {
+        "mention_rate": 0.4,
+        "recommendation_rate": 0.4,
+        "owned_citation_rate": 0.1
+      }
+    },
+    {
+      "id": "M002",
+      "description": "zero denominator recommendation",
+      "valid_answers": 3,
+      "brand_mentions": 1,
+      "recommendation_answers": 0,
+      "brand_recommendations": 0,
+      "owned_citation_answers": 0,
+      "expected": {
+        "mention_rate": 0.3333333333333333,
+        "recommendation_rate": null,
+        "owned_citation_rate": 0.0
+      }
+    },
+    {
+      "id": "M003",
+      "description": "full mention",
+      "valid_answers": 5,
+      "brand_mentions": 5,
+      "recommendation_answers": 5,
+      "brand_recommendations": 5,
+      "owned_citation_answers": 5,
+      "expected": {
+        "mention_rate": 1.0,
+        "recommendation_rate": 1.0,
+        "owned_citation_rate": 1.0
+      }
+    }
+  ],
+  "position_scores": [
+    {"mention_type": "recommended", "rank": 1, "expected": 1.0},
+    {"mention_type": "recommended", "rank": 2, "expected": 0.75},
+    {"mention_type": "recommended", "rank": 3, "expected": 0.55},
+    {"mention_type": "weakly_recommended", "rank": null, "expected": 0.2},
+    {"mention_type": "positive_mention", "rank": null, "expected": 0.1},
+    {"mention_type": "not_recommended", "rank": null, "expected": -0.3}
+  ],
+  "opportunity_scores": [
+    {
+      "scores": {
+        "business_value": 90,
+        "competitive_gap": 85,
+        "brand_absence": 100,
+        "executability": 80,
+        "evidence_readiness": 60,
+        "risk_penalty": 0
+      },
+      "expected_total": 86.25
+    }
+  ],
+  "geo_score_cases": [
+    {
+      "id": "GS001",
+      "description": "perfect brand visibility",
+      "visibility_score": 100.0,
+      "mention_rate": 1.0,
+      "recommendation_rate": 1.0,
+      "owned_citation_rate": 1.0,
+      "expected_band": "excellent"
+    },
+    {
+      "id": "GS002",
+      "description": "zero visibility",
+      "visibility_score": 0.0,
+      "mention_rate": 0.0,
+      "recommendation_rate": 0.0,
+      "owned_citation_rate": 0.0,
+      "expected_band": "critical"
+    },
+    {
+      "id": "GS003",
+      "description": "moderate presence",
+      "visibility_score": 50.0,
+      "mention_rate": 0.5,
+      "recommendation_rate": 0.4,
+      "owned_citation_rate": 0.3,
+      "expected_band": "foundation"
+    }
+  ],
+  "recommendation_types": [
+    {"type": "top_pick", "expected_score": 1.0},
+    {"type": "strong_alternative", "expected_score": 0.75},
+    {"type": "conditional", "expected_score": 0.45},
+    {"type": "mentioned_only", "expected_score": 0.15},
+    {"type": "discouraged", "expected_score": 0.0}
+  ],
+  "sentiment_cases": [
+    {
+      "id": "SE001",
+      "description": "all positive",
+      "scores": [90, 85, 95, 80, 100],
+      "expected_index": 90.0
+    },
+    {
+      "id": "SE002",
+      "description": "all negative",
+      "scores": [10, 5, 0, 15, 20],
+      "expected_index": 10.0
+    },
+    {
+      "id": "SE003",
+      "description": "neutral mix",
+      "scores": [50, 50, 50],
+      "expected_index": 50.0
+    },
+    {
+      "id": "SE004",
+      "description": "empty input",
+      "scores": [],
+      "expected_index": null
+    },
+    {
+      "id": "SE005",
+      "description": "single value",
+      "scores": [72],
+      "expected_index": 72.0
+    }
+  ],
+  "citability_cases": [
+    {
+      "id": "CI001",
+      "description": "perfect citability",
+      "method_scores": {
+        "cite_sources": {"score": 10, "max": 10, "evidence": "all cited"},
+        "statistics": {"score": 10, "max": 10, "evidence": "has stats"},
+        "quotation": {"score": 10, "max": 10, "evidence": "has quotes"}
+      },
+      "expected_band": "highly_citable"
+    },
+    {
+      "id": "CI002",
+      "description": "zero citability",
+      "method_scores": {
+        "cite_sources": {"score": 0, "max": 10, "evidence": "none"},
+        "statistics": {"score": 0, "max": 10, "evidence": "none"},
+        "quotation": {"score": 0, "max": 10, "evidence": "none"}
+      },
+      "expected_band": "not_citable"
+    },
+    {
+      "id": "CI003",
+      "description": "partial methods",
+      "method_scores": {
+        "cite_sources": {"score": 8, "max": 10, "evidence": "good"},
+        "statistics": {"score": 0, "max": 10, "evidence": "none"},
+        "quotation": {"score": 5, "max": 10, "evidence": "some"}
+      },
+      "expected_band": "foundation"
+    }
+  ],
+  "trust_stack_cases": [
+    {
+      "id": "TS001",
+      "description": "all A layers",
+      "layers": {
+        "technical": {"score": 95, "issues": []},
+        "identity": {"score": 92, "issues": []},
+        "social": {"score": 90, "issues": []},
+        "academic": {"score": 88, "issues": []},
+        "consistency": {"score": 91, "issues": []}
+      },
+      "expected_grade": "A"
+    },
+    {
+      "id": "TS002",
+      "description": "all zero",
+      "layers": {
+        "technical": {"score": 0, "issues": ["no ssl"]},
+        "identity": {"score": 0, "issues": ["no schema"]},
+        "social": {"score": 0, "issues": []},
+        "academic": {"score": 0, "issues": []},
+        "consistency": {"score": 0, "issues": []}
+      },
+      "expected_grade": "F"
+    },
+    {
+      "id": "TS003",
+      "description": "mixed layers",
+      "layers": {
+        "technical": {"score": 80, "issues": []},
+        "identity": {"score": 60, "issues": ["partial"]},
+        "social": {"score": 70, "issues": []},
+        "academic": {"score": 50, "issues": ["no citations"]},
+        "consistency": {"score": 75, "issues": []}
+      },
+      "expected_grade": "C"
+    }
+  ],
+  "freshness_cases": [
+    {
+      "id": "FR001",
+      "description": "no decay signals",
+      "decay_signals": [],
+      "expected_band": "fresh"
+    },
+    {
+      "id": "FR002",
+      "description": "multiple decay patterns",
+      "decay_signals": [
+        {"pattern": "temporal", "severity": "high", "evidence": "last updated 2020"},
+        {"pattern": "statistical", "severity": "medium", "evidence": "old stats"},
+        {"pattern": "version", "severity": "low", "evidence": "v1 mentioned"}
+      ],
+      "expected_band": "stale"
+    },
+    {
+      "id": "FR003",
+      "description": "extreme decay",
+      "decay_signals": [
+        {"pattern": "temporal", "severity": "high", "evidence": "very old"},
+        {"pattern": "statistical", "severity": "high", "evidence": "outdated"},
+        {"pattern": "version", "severity": "high", "evidence": "obsolete"},
+        {"pattern": "event", "severity": "high", "evidence": "past event"},
+        {"pattern": "price", "severity": "high", "evidence": "wrong price"}
+      ],
+      "expected_band": "rotting"
+    }
+  ],
+  "rag_readiness_cases": [
+    {
+      "id": "RG001",
+      "description": "full readiness",
+      "dimensions": {
+        "paragraph_structure": {"score": 100, "issues": []},
+        "heading_hierarchy": {"score": 100, "issues": []},
+        "definition_openings": {"score": 100, "issues": []},
+        "self_containment": {"score": 100, "issues": []},
+        "anchor_sentences": {"score": 100, "issues": []},
+        "structured_data": {"score": 100, "issues": []}
+      },
+      "expected_band": "rag_ready"
+    },
+    {
+      "id": "RG002",
+      "description": "partial dimensions",
+      "dimensions": {
+        "paragraph_structure": {"score": 80, "issues": []},
+        "heading_hierarchy": {"score": 60, "issues": ["shallow"]},
+        "definition_openings": {"score": 40, "issues": ["few defs"]},
+        "self_containment": {"score": 70, "issues": []},
+        "anchor_sentences": {"score": 50, "issues": []},
+        "structured_data": {"score": 30, "issues": ["no tables"]}
+      },
+      "expected_band": "needs_work"
+    },
+    {
+      "id": "RG003",
+      "description": "zero readiness",
+      "dimensions": {
+        "paragraph_structure": {"score": 0, "issues": ["wall of text"]},
+        "heading_hierarchy": {"score": 0, "issues": ["no headings"]},
+        "definition_openings": {"score": 0, "issues": []},
+        "self_containment": {"score": 0, "issues": ["fragments"]},
+        "anchor_sentences": {"score": 0, "issues": []},
+        "structured_data": {"score": 0, "issues": []}
+      },
+      "expected_band": "not_ready"
+    }
+  ],
+  "geo_lint_cases": [
+    {
+      "id": "GL001",
+      "description": "A grade - all dimensions high",
+      "dimension_scores": {"schema": 95, "crawler": 90, "citability": 92, "entity": 88, "multimodal": 85, "i18n": 80},
+      "errors": 0,
+      "warnings": 0,
+      "expected_grade": "A"
+    },
+    {
+      "id": "GL002",
+      "description": "F grade - many errors",
+      "dimension_scores": {"schema": 20, "crawler": 30, "citability": 10, "entity": 15, "multimodal": 5, "i18n": 0},
+      "errors": 12,
+      "warnings": 5,
+      "expected_grade": "F"
+    },
+    {
+      "id": "GL003",
+      "description": "C grade - mixed",
+      "dimension_scores": {"schema": 85, "crawler": 80, "citability": 75, "entity": 70, "multimodal": 65, "i18n": 60},
+      "errors": 1,
+      "warnings": 2,
+      "expected_grade": "C"
+    }
+  ],
+  "entity_kg_cases": [
+    {
+      "id": "EK001",
+      "description": "full entity declaration",
+      "dimensions": {
+        "basic_declaration": 25,
+        "knowledge_graph": 20,
+        "relationships": 18,
+        "consistency": 14,
+        "authority": 12
+      },
+      "expected_grade": "B"
+    },
+    {
+      "id": "EK002",
+      "description": "no entity data",
+      "dimensions": {
+        "basic_declaration": 0,
+        "knowledge_graph": 0,
+        "relationships": 0,
+        "consistency": 0,
+        "authority": 0
+      },
+      "expected_grade": "F"
+    },
+    {
+      "id": "EK003",
+      "description": "partial registration",
+      "dimensions": {
+        "basic_declaration": 20,
+        "knowledge_graph": 10,
+        "relationships": 5,
+        "consistency": 10,
+        "authority": 5
+      },
+      "expected_grade": "D"
+    }
+  ],
+  "i18n_cases": [
+    {
+      "id": "I18N001",
+      "description": "full multilingual setup",
+      "dimensions": {
+        "technical": 28,
+        "content": 27,
+        "regional_entity": 18,
+        "ai_coverage": 18
+      },
+      "expected_grade": "A"
+    },
+    {
+      "id": "I18N002",
+      "description": "single language only",
+      "dimensions": {
+        "technical": 10,
+        "content": 15,
+        "regional_entity": 0,
+        "ai_coverage": 0
+      },
+      "expected_grade": "F"
+    },
+    {
+      "id": "I18N003",
+      "description": "partial i18n",
+      "dimensions": {
+        "technical": 20,
+        "content": 18,
+        "regional_entity": 10,
+        "ai_coverage": 5
+      },
+      "expected_grade": "D"
+    }
+  ]
+}

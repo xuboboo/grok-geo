@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "skill_name": "geo-brand-audit",
+  "skill_version": "1.0.0",
+  "run_id": "geo_offline_demo_00000001",
+  "mode": "offline_import",
+  "status": "COMPLETED",
+  "started_at": "2026-07-16T17:38:57Z",
+  "updated_at": "2026-07-16T17:39:01Z",
+  "completed_at": "2026-07-16T17:39:01Z",
+  "input_sha256": "ddd4a4f0270d2a41e32208c04b0e557f88d62b7edfa6945c8717d68adb9bda2b",
+  "question_count": 10,
+  "search_result_count": 10,
+  "successful_result_count": 10,
+  "failed_result_count": 0,
+  "current_batch": 0,
+  "warnings": [],
+  "errors": [],
+  "outputs": {
+    "report_md": "C:\\Users\\豆豆\\Desktop\\code\\skill\\dist\\demo-runs\\geo_offline_demo_00000001\\output\\report.md",
+    "report_json": "C:\\Users\\豆豆\\Desktop\\code\\skill\\dist\\demo-runs\\geo_offline_demo_00000001\\output\\report.json",
+    "questions_csv": "C:\\Users\\豆豆\\Desktop\\code\\skill\\dist\\demo-runs\\geo_offline_demo_00000001\\output\\questions.csv",
+    "evidence_csv": "C:\\Users\\豆豆\\Desktop\\code\\skill\\dist\\demo-runs\\geo_offline_demo_00000001\\output\\evidence.csv",
+    "opportunities_csv": "C:\\Users\\豆豆\\Desktop\\code\\skill\\dist\\demo-runs\\geo_offline_demo_00000001\\output\\opportunities.csv",
+    "manifest_json": "C:\\Users\\豆豆\\Desktop\\code\\skill\\dist\\demo-runs\\geo_offline_demo_00000001\\output\\manifest.json"
+  }
+}
