@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Multi-Engine Query — 多引擎真实 AI 搜索查询。
 
-支持 8 个 AI 引擎的统一查询接口。
+支持 7 个 AI 引擎的统一查询接口。
 
 用法:
   # 列出可用引擎
@@ -485,6 +485,61 @@ class DeepSeekAdapter(EngineAdapter):
         return resp
 
 
+class KimiAdapter(EngineAdapter):
+    """Kimi K3 via Moonshot API (OpenAI-compatible)."""
+    engine_name = "kimi"
+    requires_api_key = True
+    supports_citations = False
+    api_key_env = "MOONSHOT_API_KEY"
+    rate_limit_rpm = 60
+
+    def query(self, question: str, question_id: str = "", **kwargs) -> Dict[str, Any]:
+        resp = new_engine_response("kimi", question_id, question)
+        resp["model"] = "kimi-k3"
+
+        if not self._api_key:
+            resp["status"] = "error"
+            resp["error"] = "MOONSHOT_API_KEY not set"
+            resp["fallback"] = "web_search"
+            return resp
+
+        try:
+            import urllib.request
+
+            body = json.dumps({
+                "model": "kimi-k3",
+                "messages": [{"role": "user", "content": question}],
+            }).encode("utf-8")
+
+            req = urllib.request.Request(
+                "https://api.moonshot.ai/v1/chat/completions",
+                data=body,
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {self._api_key}",
+                },
+            )
+
+            start = time.monotonic()
+            with urllib.request.urlopen(req, timeout=120) as r:
+                data = json.loads(r.read().decode("utf-8"))
+            elapsed = int((time.monotonic() - start) * 1000)
+
+            choices = data.get("choices", [])
+            if choices:
+                msg = choices[0].get("message", {})
+                resp["answer_text"] = msg.get("content", "")
+
+            resp["response_metadata"]["latency_ms"] = elapsed
+
+        except Exception as e:
+            resp["status"] = "error"
+            resp["error"] = str(e)
+            resp["fallback"] = "web_search"
+
+        return resp
+
+
 # ─── Engine Registry ────────────────────────────────────────────────────
 
 ENGINES: Dict[str, EngineAdapter] = {
@@ -494,27 +549,30 @@ ENGINES: Dict[str, EngineAdapter] = {
     "gemini": GeminiAdapter(),
     "grok": GrokAdapter(),
     "deepseek": DeepSeekAdapter(),
+    "kimi": KimiAdapter(),
 }
 
 # Engine priority for query distribution
-ENGINE_PRIORITY = ["chatgpt", "perplexity", "claude", "gemini", "grok", "deepseek"]
+ENGINE_PRIORITY = ["chatgpt", "perplexity", "claude", "gemini", "grok", "deepseek", "kimi"]
 
 # Distribution ratios for standard mode
 STANDARD_DISTRIBUTION = {
-    "chatgpt": 0.30,
-    "perplexity": 0.25,
-    "claude": 0.20,
-    "gemini": 0.15,
+    "chatgpt": 0.25,
+    "perplexity": 0.20,
+    "claude": 0.15,
+    "gemini": 0.12,
     "grok": 0.05,
-    "deepseek": 0.05,
+    "deepseek": 0.08,
+    "kimi": 0.15,
 }
 
 # Distribution ratios for quick mode
 QUICK_DISTRIBUTION = {
-    "chatgpt": 0.40,
-    "perplexity": 0.30,
+    "chatgpt": 0.35,
+    "perplexity": 0.25,
     "claude": 0.20,
     "gemini": 0.10,
+    "kimi": 0.10,
 }
 
 

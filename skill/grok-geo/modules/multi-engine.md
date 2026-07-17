@@ -18,16 +18,17 @@ python <SKILL>/scripts/multi_engine_query.py batch \
   --run-dir <RUN> --engines chatgpt,perplexity,claude
 ```
 
-## Supported Engines (6)
+## Supported Engines (7)
 
 | Engine | Env Variable | Citations | Standard Share |
 |--------|-------------|-----------|----------------|
-| ChatGPT Search | `OPENAI_API_KEY` | Yes | 30% |
-| Perplexity | `PERPLEXITY_API_KEY` | Yes | 25% |
-| Claude Search | `ANTHROPIC_API_KEY` | Yes | 20% |
-| Gemini | `GOOGLE_API_KEY` | Yes | 15% |
+| ChatGPT Search | `OPENAI_API_KEY` | Yes | 25% |
+| Perplexity | `PERPLEXITY_API_KEY` | Yes | 20% |
+| Claude Search | `ANTHROPIC_API_KEY` | Yes | 15% |
+| Kimi K3 | `MOONSHOT_API_KEY` | No | 15% |
+| Gemini | `GOOGLE_API_KEY` | Yes | 12% |
+| DeepSeek | `DEEPSEEK_API_KEY` | No | 8% |
 | Grok | `XAI_API_KEY` | No | 5% |
-| DeepSeek | `DEEPSEEK_API_KEY` | No | 5% |
 
 ## Fallback
 

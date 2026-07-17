@@ -480,29 +480,33 @@ class ZhipuGLMAdapter(AIEngineAdapter):
 
 
 class MoonshotKimiAdapter(AIEngineAdapter):
-    """Moonshot Kimi API adapter (Kimi Chat)."""
-    
+    """Moonshot Kimi API adapter (Kimi K3, K2.7 Code, K2.6).
+
+    K3 is the flagship model: 2.8T params, 1M context, native vision.
+    moonshot-v1 series is deprecated (sunset 2026-08-31).
+    """
+
     def _get_api_key_from_env(self) -> Optional[str]:
         return os.getenv("MOONSHOT_API_KEY")
-    
+
     def _get_engine_name(self) -> str:
         return "moonshot_kimi"
-    
+
     def validate_config(self) -> bool:
         return bool(self.api_key)
-    
+
     def query(self, prompt: str, **kwargs) -> AIResponse:
         try:
             import httpx
-            model = kwargs.get("model", "moonshot-v1-8k")
+            model = kwargs.get("model", "kimi-k3")
             response = httpx.post(
-                "https://api.moonshot.cn/v1/chat/completions",
+                "https://api.moonshot.ai/v1/chat/completions",
                 headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
                 json={
                     "model": model,
-                    "messages": [{"role": "user", "content": prompt}]
+                    "messages": [{"role": "user", "content": prompt}],
                 },
-                timeout=30.0
+                timeout=120.0
             )
             response.raise_for_status()
             data = response.json()
