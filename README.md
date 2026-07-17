@@ -1,4 +1,4 @@
-# GEO Brand Audit Skill
+# grok-geo Skill
 
 **AI 搜索 / GEO 品牌诊断 Agent Skill（v5.0.0）**
 
