@@ -5,8 +5,10 @@ description: >
   presence, factual accuracy, and content gaps in AI-assisted web search.
   Use for GEO audits, AI search visibility analysis, AI citation analysis,
   brand-versus-competitor comparisons, website GEO content diagnostics,
-  ChatGPT/Perplexity/Claude brand mention analysis, AI search optimization,
+  ChatGPT/豆包/DeepSeek/通义千问/智谱 GLM/Kimi/文心一言/Claude/Gemini/Perplexity
+  brand mention analysis, AI search optimization,
   and generative engine optimization (GEO) reports.
+  Supports 17+ AI engines (8 international + 9 Chinese).
   Do not use for ordinary copywriting, general SEO keyword research,
   social-media scraping, guaranteed-ranking requests, or content publishing.
 ---

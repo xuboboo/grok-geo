@@ -20,7 +20,8 @@
 
 | Category | Capabilities |
 |----------|-------------|
-| **AI Engines** | 17 adapters: OpenAI, Anthropic, Google, Mistral, Cohere, DeepSeek, xAI + 9 China engines |
+| **AI Engines (国际)** | OpenAI (ChatGPT)、Anthropic (Claude)、Google (Gemini)、Perplexity、Mistral、Cohere、xAI (Grok)、DeepSeek |
+| **AI Engines (国内)** | 豆包 (Doubao)、通义千问 (Qwen)、智谱 GLM (Zhipu)、Kimi (Moonshot)、文心一言 (Wenxin)、讯飞星火 (Spark)、腾讯混元 (Hunyuan)、火山引擎 (Volcengine) |
 | **Metrics** | 60+ metrics: GEO Score, Sentiment, Citability, Trust Stack, Entity KG, i18n, Predictive |
 | **Compliance** | GEO Lint (92 rules), Schema Validation, Entity Resolution |
 | **Monitoring** | Real-time alerts (Email/Slack/WeChat/DingTalk), 30-day trend history |
@@ -66,7 +67,7 @@ skill/
 ---
 
 > 🌟 **这是一个完全开源的项目**，采用 MIT 许可证，欢迎任何人使用、修改和分发。
-> 通过 AI 搜索引擎（ChatGPT、Perplexity、Claude 等）诊断品牌可见度、引用准确性、竞争对手表现和内容差距的完整解决方案。
+> 支持 17+ 主流 AI 引擎的品牌可见度诊断，覆盖 ChatGPT、豆包、DeepSeek、通义千问、智谱 GLM、Kimi、文心一言、Claude、Gemini、Perplexity 等，提供引用准确性验证、竞争对手表现分析和内容差距诊断的完整解决方案。
 
 ## 核心功能
 
