@@ -4,11 +4,14 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger("grok-geo.alert")
 
 try:
     import httpx
@@ -69,7 +72,7 @@ This is an automated alert from grok-geo.
             
             return True
         except Exception as e:
-            print(f"Email alert failed: {e}")
+            logger.error("Email alert failed: %s", e)
             return False
 
 
@@ -130,7 +133,7 @@ class SlackChannel(AlertChannel):
                 urllib.request.urlopen(req, timeout=10)
             return True
         except Exception as e:
-            print(f"Slack alert failed: {e}")
+            logger.error("Slack alert failed: %s", e)
             return False
 
 
@@ -181,7 +184,7 @@ class WeChatChannel(AlertChannel):
                 urllib.request.urlopen(req, timeout=10)
             return True
         except Exception as e:
-            print(f"WeChat alert failed: {e}")
+            logger.error("WeChat alert failed: %s", e)
             return False
 
 
@@ -233,7 +236,7 @@ class DingTalkChannel(AlertChannel):
                 urllib.request.urlopen(req, timeout=10)
             return True
         except Exception as e:
-            print(f"DingTalk alert failed: {e}")
+            logger.error("DingTalk alert failed: %s", e)
             return False
 
 
@@ -266,7 +269,7 @@ class AlertManager:
                 results[channel_name] = success
             except Exception as e:
                 results[channel_name] = False
-                print(f"Alert notification failed for {channel_name}: {e}")
+                logger.error("Alert notification failed for %s: %s", channel_name, e)
         
         return results
     
@@ -288,10 +291,10 @@ if __name__ == "__main__":
     }
     
     manager = AlertManager()
-    print(f"Loaded {len(manager.channels)} alert channels")
+    logger.info("Loaded %d alert channels", len(manager.channels))
     
     if manager.channels:
         results = manager.notify(test_alert)
-        print(f"Notification results: {results}")
+        logger.info("Notification results: %s", results)
     else:
-        print("No alert channels configured. Set environment variables to enable.")
+        logger.warning("No alert channels configured. Set environment variables to enable.")

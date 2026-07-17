@@ -7,10 +7,13 @@ China: Baidu Wenxin, Alibaba Tongyi, ByteDance Doubao, DeepSeek, Zhipu GLM, Moon
 
 from __future__ import annotations
 
+import logging
 import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger("grok-geo.adapters")
 
 
 @dataclass
@@ -765,10 +768,12 @@ class MultiEngineQuerier:
 
 
 if __name__ == "__main__":
-    print("Supported engines:", list_all_engines())
-    print("\nAvailable engines:", get_available_engines())
+    logging.basicConfig(level=logging.INFO)
+    
+    logger.info("Supported engines: %s", list_all_engines())
+    logger.info("Available engines: %s", get_available_engines())
     
     for engine in list_all_engines():
         adapter = get_adapter(engine)
         if adapter:
-            print(f"  {engine}: configured={adapter.validate_config()}")
+            logger.info("  %s: configured=%s", engine, adapter.validate_config())

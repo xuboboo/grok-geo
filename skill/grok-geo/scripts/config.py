@@ -3,10 +3,15 @@
 
 from __future__ import annotations
 
+import json
+import logging
 import os
+import stat
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger("grok-geo.config")
 
 
 @dataclass
@@ -30,14 +35,35 @@ class APIConfig:
     
     @classmethod
     def from_file(cls, config_path: Path) -> "APIConfig":
-        """Load configuration from JSON file."""
-        import json
+        """Load configuration from JSON file.
         
+        Warns if the config file has overly permissive permissions (world-readable).
+        """
         if not config_path.exists():
             return cls()
         
+        # Check file permissions (Unix-like systems)
+        try:
+            mode = config_path.stat().st_mode
+            if mode & stat.S_IROTH:
+                logger.warning(
+                    "Config file %s is world-readable. Consider: chmod 600 %s",
+                    config_path, config_path
+                )
+        except (OSError, AttributeError):
+            pass  # Windows or permission check not supported
+        
         with open(config_path, "r", encoding="utf-8") as f:
             data = json.load(f)
+        
+        # Warn if API keys are found in file
+        key_fields = ["openai_api_key", "anthropic_api_key", "google_api_key", "perplexity_api_key"]
+        found_keys = [k for k in key_fields if data.get(k)]
+        if found_keys:
+            logger.warning(
+                "API keys found in config file (%s). Prefer environment variables for production use.",
+                ", ".join(found_keys)
+            )
         
         return cls(
             openai_api_key=data.get("openai_api_key"),
@@ -131,12 +157,14 @@ def set_run_config(config: RunConfig):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    
     # Quick test
     api_config = get_api_config()
     run_config = get_run_config()
     
-    print("API Config:", api_config.to_dict())
-    print("Run Config:", {
+    logger.info("API Config: %s", api_config.to_dict())
+    logger.info("Run Config: %s", {
         "base_dir": str(run_config.base_dir),
         "mode": run_config.mode,
         "engines": run_config.engines,

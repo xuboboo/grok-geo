@@ -446,10 +446,13 @@ make release
 
 ## 安全约束
 
-- 脚本**不发起任何网络请求**，实时搜索由 Agent 的 `web_search` 工具完成
+- **确定性计算脚本**（`scripts/` 下除 `multi_engine_query.py`、`api_adapters.py`、`alert_channels.py` 外）**不发起任何网络请求**，实时搜索由 Agent 的 `web_search` 工具完成
+- **AI 引擎查询**（`multi_engine_query.py`、`api_adapters.py`）通过 `urllib.request` / `httpx` 调用官方 API，所有 API Key 从环境变量读取，禁止硬编码
+- **告警通知**（`alert_channels.py`）通过 webhook 发送告警，URL 从环境变量读取
 - **禁止伪造引用**：所有数据必须来自真实搜索结果
-- **禁止执行用户 shell**：脚本仅执行预定义操作
-- **禁止读取 run 外路径**：严格限制文件访问范围
+- **禁止执行用户 shell**：脚本仅执行预定义操作（`subprocess.run` 不使用 `shell=True`）
+- **禁止读取 run 外路径**：`path_utils.resolve_under()` 严格限制文件访问范围，防止路径遍历
+- **API Key 保护**：配置文件中的密钥在日志和序列化输出中自动脱敏（`config.to_dict()`）
 
 ## 🤝 贡献指南
 

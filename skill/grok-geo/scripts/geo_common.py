@@ -39,4 +39,5 @@ from core.locking import FileLock, file_lock  # noqa: F401
 from core.text_utils import *  # noqa: F401,F403
 from core.url_utils import *  # noqa: F401,F403
 from core.cli_utils import *  # noqa: F401,F403
+from core.log import get_logger  # noqa: F401
 from scoring import *  # noqa: F401,F403

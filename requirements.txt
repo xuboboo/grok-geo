@@ -1,0 +1,21 @@
+# Core dependencies
+streamlit>=1.35.0
+plotly>=5.22.0
+pandas>=2.2.0
+
+# HTTP client (for AI engine adapters and alert channels)
+httpx>=0.27.0
+
+# PDF export
+reportlab>=4.0
+
+# AI engine SDKs (optional, for multi_engine_query / api_adapters)
+openai>=1.30.0
+anthropic>=0.34.0
+google-generativeai>=0.8.0
+mistralai>=1.0.0
+cohere>=5.0.0
+zhipuai>=2.0.0
+
+# Security: pin urllib3 to avoid known vulnerabilities
+urllib3>=2.0.7

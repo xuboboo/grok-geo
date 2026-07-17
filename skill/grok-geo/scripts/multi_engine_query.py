@@ -15,18 +15,26 @@
 
   # 引擎健康检查
   python multi_engine_query.py health-check
+
+安全说明:
+  - 所有 API Key 从环境变量读取，禁止硬编码
+  - 批量查询内置速率限制（基于各引擎 rate_limit_rpm 配置）
+  - 网络请求超时默认 60-120 秒，防止连接挂起
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 import sys
 import time
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
+
+logger = logging.getLogger("grok-geo.multi_engine")
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -74,6 +82,42 @@ def new_engine_response(
 
 # ─── Engine Adapters ────────────────────────────────────────────────────
 
+# ─── Rate Limiter ──────────────────────────────────────────────────────
+
+class RateLimiter:
+    """Token bucket rate limiter for API calls.
+    
+    Ensures per-engine rate limits are respected with burst tolerance.
+    """
+    
+    def __init__(self, rpm: int = 60, burst: int = 1):
+        self.rpm = rpm
+        self.burst = max(1, burst)
+        self.interval = 60.0 / rpm  # seconds between requests
+        self._last_call: float = 0
+        self._lock_count: int = 0
+    
+    def wait(self) -> float:
+        """Wait if needed to respect rate limit. Returns seconds waited."""
+        now = time.monotonic()
+        elapsed = now - self._last_call
+        wait_time = max(0, self.interval - elapsed)
+        
+        if wait_time > 0:
+            logger.debug("Rate limit: waiting %.2fs (rpm=%d)", wait_time, self.rpm)
+            time.sleep(wait_time)
+        
+        self._last_call = time.monotonic()
+        return wait_time
+    
+    def record_error(self, retry_after: Optional[float] = None) -> None:
+        """Record a rate limit error and back off."""
+        backoff = retry_after or min(self.interval * 2, 30)
+        logger.warning("Rate limit hit, backing off %.1fs", backoff)
+        time.sleep(backoff)
+        self._last_call = time.monotonic()
+
+
 class EngineAdapter(ABC):
     """统一的 AI 引擎查询基类。"""
     
@@ -86,6 +130,7 @@ class EngineAdapter(ABC):
 
     def __init__(self) -> None:
         self._api_key = os.environ.get(self.api_key_env, "")
+        self._rate_limiter = RateLimiter(rpm=self.rate_limit_rpm)
 
     def is_available(self) -> bool:
         if self.requires_api_key and not self._api_key:
@@ -171,6 +216,12 @@ class ChatGPTAdapter(EngineAdapter):
             resp["status"] = "error"
             resp["error"] = str(e)
             resp["fallback"] = "web_search"
+            # Detect rate limit (HTTP 429) and back off
+            if "429" in str(e) or "rate" in str(e).lower():
+                self._rate_limiter.record_error()
+                logger.warning("ChatGPT rate limit hit: %s", e)
+            else:
+                logger.error("ChatGPT query failed: %s", e)
 
         return resp
 
@@ -235,6 +286,11 @@ class PerplexityEngineAdapter(EngineAdapter):
             resp["status"] = "error"
             resp["error"] = str(e)
             resp["fallback"] = "web_search"
+            if "429" in str(e) or "rate" in str(e).lower():
+                self._rate_limiter.record_error()
+                logger.warning("Perplexity rate limit hit: %s", e)
+            else:
+                logger.error("Perplexity query failed: %s", e)
 
         return resp
 
@@ -303,6 +359,11 @@ class ClaudeSearchAdapter(EngineAdapter):
             resp["status"] = "error"
             resp["error"] = str(e)
             resp["fallback"] = "web_search"
+            if "429" in str(e) or "rate" in str(e).lower():
+                self._rate_limiter.record_error()
+                logger.warning("Claude rate limit hit: %s", e)
+            else:
+                logger.error("Claude query failed: %s", e)
 
         return resp
 
@@ -371,6 +432,11 @@ class GeminiAdapter(EngineAdapter):
             resp["status"] = "error"
             resp["error"] = str(e)
             resp["fallback"] = "web_search"
+            if "429" in str(e) or "rate" in str(e).lower():
+                self._rate_limiter.record_error()
+                logger.warning("Gemini rate limit hit: %s", e)
+            else:
+                logger.error("Gemini query failed: %s", e)
 
         return resp
 
@@ -426,6 +492,11 @@ class GrokAdapter(EngineAdapter):
             resp["status"] = "error"
             resp["error"] = str(e)
             resp["fallback"] = "web_search"
+            if "429" in str(e) or "rate" in str(e).lower():
+                self._rate_limiter.record_error()
+                logger.warning("Grok rate limit hit: %s", e)
+            else:
+                logger.error("Grok query failed: %s", e)
 
         return resp
 
@@ -481,6 +552,11 @@ class DeepSeekAdapter(EngineAdapter):
             resp["status"] = "error"
             resp["error"] = str(e)
             resp["fallback"] = "web_search"
+            if "429" in str(e) or "rate" in str(e).lower():
+                self._rate_limiter.record_error()
+                logger.warning("DeepSeek rate limit hit: %s", e)
+            else:
+                logger.error("DeepSeek query failed: %s", e)
 
         return resp
 
@@ -536,6 +612,11 @@ class KimiAdapter(EngineAdapter):
             resp["status"] = "error"
             resp["error"] = str(e)
             resp["fallback"] = "web_search"
+            if "429" in str(e) or "rate" in str(e).lower():
+                self._rate_limiter.record_error()
+                logger.warning("Kimi rate limit hit: %s", e)
+            else:
+                logger.error("Kimi query failed: %s", e)
 
         return resp
 
@@ -681,8 +762,8 @@ def route_queries(
             
             all_responses.append(response)
             
-            # Rate limiting
-            time.sleep(60.0 / adapter.rate_limit_rpm)
+            # Rate limiting via token bucket
+            adapter._rate_limiter.wait()
     
     return all_responses
 
@@ -773,7 +854,7 @@ def main() -> None:
     if args.command == "list-engines":
         for name, adapter in ENGINES.items():
             status = "✓" if adapter.is_available() else "✗ (API key missing)"
-            print(f"  {name:15s} {status}")
+            print(f"  {name:15s} {status}")  # CLI output — keep as print
         return
 
     if args.command == "health-check":
@@ -784,8 +865,7 @@ def main() -> None:
     if args.command == "query":
         adapter = ENGINES.get(args.engine)
         if not adapter:
-            print(f"Unknown engine: {args.engine}")
-            print(f"Available: {', '.join(ENGINES.keys())}")
+            logger.error("Unknown engine: %s. Available: %s", args.engine, ", ".join(ENGINES.keys()))
             sys.exit(1)
         response = adapter.query(args.question, question_id=args.question_id)
         print_json(response)
@@ -795,7 +875,7 @@ def main() -> None:
         run_dir = Path(args.run_dir)
         questions_path = run_dir / "intermediate" / "questions.json"
         if not questions_path.exists():
-            print(f"Questions file not found: {questions_path}")
+            logger.error("Questions file not found: %s", questions_path)
             sys.exit(1)
 
         questions_data = read_json(questions_path)
@@ -815,10 +895,10 @@ def main() -> None:
         metrics_path = run_dir / "intermediate" / "cross_engine_metrics.json"
         write_json(metrics_path, metrics)
 
-        print(f"Queried {len(responses)} questions across {len(metrics.get('engines_used', []))} engines")
-        print(f"Success rate: {metrics.get('total_successful', 0)}/{metrics.get('total_queries', 0)}")
-        print(f"Responses: {output_path}")
-        print(f"Metrics: {metrics_path}")
+        logger.info("Queried %d questions across %d engines", len(responses), len(metrics.get('engines_used', [])))
+        logger.info("Success rate: %d/%d", metrics.get('total_successful', 0), metrics.get('total_queries', 0))
+        logger.info("Responses: %s", output_path)
+        logger.info("Metrics: %s", metrics_path)
         return
 
     parser.print_help()
