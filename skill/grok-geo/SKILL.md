@@ -13,7 +13,7 @@ description: >
   social-media scraping, guaranteed-ranking requests, or content publishing.
 ---
 
-# GEO Brand Audit Skill
+# grok-geo Skill
 
 > **Pattern: Pipeline + Inversion + Reviewer**
 > This skill enforces a strict multi-step pipeline with gate conditions.

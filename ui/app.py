@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""GEO Brand Audit — Streamlit Web Interface."""
+"""grok-geo — Streamlit Web Interface."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ sys.path.insert(0, str(SCRIPTS))
 
 # Page configuration
 st.set_page_config(
-    page_title="GEO Brand Audit",
+    page_title="grok-geo",
     page_icon="🔍",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -100,7 +100,7 @@ def main():
     
     # Sidebar
     with st.sidebar:
-        st.title("🔍 GEO Brand Audit")
+        st.title("🔍 grok-geo")
         st.markdown("---")
         
         # File upload
@@ -108,7 +108,7 @@ def main():
         uploaded_file = st.file_uploader(
             "Choose a report JSON file",
             type=["json"],
-            help="Upload a GEO Brand Audit report file"
+            help="Upload a grok-geo report file"
         )
         
         # Demo mode
@@ -150,7 +150,7 @@ def main():
     
     # Report header
     metadata = report.get("metadata", {})
-    st.title(f"GEO Brand Audit: {metadata.get('brand_name', 'Unknown')}")
+    st.title(f"grok-geo: {metadata.get('brand_name', 'Unknown')}")
     st.caption(f"Generated: {metadata.get('generated_at', 'N/A')}")
     
     # Tabs

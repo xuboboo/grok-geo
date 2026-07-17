@@ -1,4 +1,4 @@
-# GEO Brand Audit — Metric Definitions
+# grok-geo — Metric Definitions
 
 > Version: 5.0.0
 > All numeric metrics are produced by deterministic scripts. Do NOT hand-compute.

@@ -177,7 +177,7 @@ def generate_windows_task_command(schedule_name: str, script_path: Path, time: s
 if __name__ == "__main__":
     import argparse
     
-    parser = argparse.ArgumentParser(description="GEO Brand Audit Scheduler")
+    parser = argparse.ArgumentParser(description="grok-geo Scheduler")
     parser.add_argument("--config", type=str, default="./schedules.json", help="Schedule config file")
     parser.add_argument("--run", type=str, help="Run a specific schedule")
     parser.add_argument("--run-all", action="store_true", help="Run all enabled schedules")

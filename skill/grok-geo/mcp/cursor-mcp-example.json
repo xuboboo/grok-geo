@@ -3,7 +3,7 @@
     "grok-geo": {
       "command": "python",
       "args": ["skill/grok-geo/mcp/mcp_server.py"],
-      "description": "GEO Brand Audit — AI search visibility diagnostics with 60+ metrics"
+      "description": "grok-geo — AI search visibility diagnostics with 60+ metrics"
     }
   }
 }

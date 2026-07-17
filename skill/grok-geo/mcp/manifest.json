@@ -1,7 +1,7 @@
 {
   "name": "grok-geo",
   "version": "5.0.0",
-  "description": "GEO Brand Audit MCP Server — AI search visibility diagnostics",
+  "description": "grok-geo MCP Server — AI search visibility diagnostics",
   "tools": [
     {
       "name": "geo_audit_run",

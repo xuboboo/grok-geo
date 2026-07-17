@@ -47,7 +47,7 @@ class EmailChannel(AlertChannel):
             msg["Subject"] = f"[GEO Alert] {alert['severity'].upper()}: {alert['metric']}"
             
             body = f"""
-GEO Brand Audit Alert
+grok-geo Alert
 
 Brand: {alert['brand_name']}
 Severity: {alert['severity'].upper()}
@@ -58,7 +58,7 @@ Message: {alert['message']}
 Triggered At: {alert['triggered_at']}
 
 ---
-This is an automated alert from GEO Brand Audit.
+This is an automated alert from grok-geo.
 """
             msg.attach(MIMEText(body, "plain"))
             

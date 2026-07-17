@@ -1,4 +1,4 @@
-# GEO Brand Audit — References Index
+# grok-geo — References Index
 
 43 reference documents organized by type.
 

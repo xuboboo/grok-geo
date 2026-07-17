@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""GEO Brand Audit MCP Server.
+"""grok-geo MCP Server.
 
 Exposes GEO audit capabilities as MCP tools for Cursor/Claude integration.
 
@@ -37,7 +37,7 @@ from core.path_utils import default_runs_base_dir, ensure_run_dirs, generate_run
 
 
 class MCPServer:
-    """Minimal MCP stdio server for GEO Brand Audit."""
+    """Minimal MCP stdio server for grok-geo."""
 
     def __init__(self):
         self.base_dir = default_runs_base_dir()
