@@ -17,9 +17,19 @@ geo-audit-runs/
 .DS_Store
 Thumbs.db
 
+# Build / upload artifacts
+*.zip
+
 # Backup files
 *.bak
 
 # IDE
 .vscode/
 .idea/
+
+# Internal docs — methodology, research notes, module specs (confidential)
+skill/grok-geo/references/methodology/
+skill/grok-geo/references/research/
+skill/grok-geo/references/specification/
+skill/grok-geo/references/INDEX.md
+skill/grok-geo/modules/

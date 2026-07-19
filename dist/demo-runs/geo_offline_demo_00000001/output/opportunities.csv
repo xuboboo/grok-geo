@@ -1,5 +1,0 @@
-id,title,opportunity_type,total_score,business_value,target_question_ids,recommended_asset
-opp-001,建设适合五十人研发团队的选购指南,missing_recommendation_content,80.25,90,"q-001,q-002",website_buying_guide
-opp-002,发布与竞争品牌A/B的客观对比页,competitor_comparison_gap,72.75,80,"q-006,q-003",comparison_page
-opp-003,补强私有化部署权威说明页,incorrect_claim_correction,72.6,92,"q-005,q-009",official_capability_page
-opp-004,提升官网在推荐答案中的被引概率,owned_citation_gap,70.0,85,"q-001,q-003,q-007",structured_product_pages

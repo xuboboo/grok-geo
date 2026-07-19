@@ -78,19 +78,14 @@ pre-commit install
 
 ```text
 skill/grok-geo/    # Skill core
-  modules/                 # Pipeline module specs
   schemas/                 # JSON Schema definitions
   scripts/                 # Deterministic Python scripts
-    core/                  #   Shared utilities (constants, runners, I/O)
-    scoring/               #   Scoring algorithms
   templates/               # Report templates (.md.tpl)
   evals/                   # Evaluation harness
   examples/                # Offline demo inputs and runner
-  references/              # Methodology and specification docs
 tests/                     # Unit, integration, boundary, performance tests
-devtools/                  # Upload/inspect helpers (not packaged)
+devtools/                  # Development helpers (not packaged)
 scripts/                   # Build/packaging scripts
-dist/                      # Release artifacts
 ```
 
 ## Making Changes

@@ -20,7 +20,7 @@ def main() -> int:
         "status": "dry_run" if args.dry_run or not os.environ.get("OPENAI_API_KEY") else "not_implemented_live",
         "brand_name": data.get("brand_name"),
         "container_id": args.container_id,
-        "hint": "Use Responses API with web_search + shell + skill_reference; see reem.md §21.",
+        "hint": "Use Responses API with web_search + shell + skill_reference.",
     }
     print(json.dumps(payload, ensure_ascii=False, indent=2))
     return 0
